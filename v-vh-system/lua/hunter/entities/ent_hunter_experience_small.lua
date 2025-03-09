@@ -1,0 +1,32 @@
+-- Small Hunter Experience Book Entity
+
+AddCSLuaFile()
+
+ENT = {}
+ENT.Type = "anim"
+ENT.Base = "base_gmodentity"
+ENT.PrintName = "Small Hunter Experience Book"
+ENT.Author = "Your Name"
+ENT.Category = "Hunter System"
+ENT.Spawnable = true
+ENT.AdminSpawnable = true
+
+function ENT:Initialize()
+    self:SetModel("models/props_lab/binderblue.mdl")
+    self:PhysicsInit(SOLID_VPHYSICS)
+    self:SetMoveType(MOVETYPE_VPHYSICS)
+    self:SetSolid(SOLID_VPHYSICS)
+    local phys = self:GetPhysicsObject()
+    if phys:IsValid() then
+        phys:Wake()
+    end
+end
+
+function ENT:Use(activator, caller)
+    if activator:IsPlayer() then
+        AddExperience(activator, 2500) -- Give 2500 experience
+        self:Remove()
+    end
+end
+
+scripted_ents.Register(ENT, "ent_hunter_experience_small")

@@ -1,10 +1,13 @@
 -- Vampire Utility Functions
 
-include("vampire_config.lua")
+include("vampire/sh_vampire_config.lua")
 
 -- Initialize the vampires table
 if SERVER then
     vampires = vampires or {}
+    util.AddNetworkString("SyncVampireData")
+    util.AddNetworkString("NewTierMessage")
+    util.AddNetworkString("UpdateVampireHUD")
 else
     vampires = vampires or {}
     net.Receive("SyncVampireData", function()
@@ -15,7 +18,7 @@ end
 -- Function to save vampire data to the SQLite database
 function SaveVampireData()
     for steamID, data in pairs(vampires) do
-        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier, perks) VALUES ('%s', %d, '%s', '%s')", steamID, data.blood, data.tier, util.TableToJSON(data.perks or {})))
+        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier) VALUES ('%s', %d, '%s')", steamID, data.blood, data.tier))
     end
 end
 
@@ -27,13 +30,13 @@ end
 -- Function to load vampire data from the SQLite database
 local function LoadVampireData()
     if not sql.TableExists("vampire_data") then
-        sql.Query("CREATE TABLE vampire_data (steamID TEXT PRIMARY KEY, blood INTEGER, tier TEXT, perks TEXT)")
+        sql.Query("CREATE TABLE vampire_data (steamID TEXT PRIMARY KEY, blood INTEGER, tier TEXT)")
     end
 
     local result = sql.Query("SELECT * FROM vampire_data")
     if result then
         for _, row in ipairs(result) do
-            vampires[row.steamID] = { blood = tonumber(row.blood), tier = row.tier, perks = util.JSONToTable(row.perks or "[]") }
+            vampires[row.steamID] = { blood = tonumber(row.blood), tier = row.tier }
         end
     end
 end
@@ -53,7 +56,10 @@ end
 -- Function to turn a player into a vampire
 function MakeVampire(ply)
     if not ply:IsPlayer() then return end
-    vampires[ply:SteamID()] = { blood = 0, tier = "Thrall", perks = {} }
+    if IsHunter(ply) then
+        RemoveHunter(ply)
+    end
+    vampires[ply:SteamID()] = { blood = 0, tier = "Thrall" }
     UpdateVampireStats(ply)
     ply:ChatPrint("You have been turned into a vampire!")
     ply:Give("weapon_vampire")
@@ -133,7 +139,9 @@ function AddBlood(ply, amount)
     if newTier ~= vampire.tier then
         vampire.tier = newTier
         UpdateVampireStats(ply)
-        ply:ChatPrint("You have reached a new tier: " .. vampire.tier)
+        net.Start("NewTierMessage")
+        net.WriteString("You have reached a new tier: " .. vampire.tier)
+        net.Send(ply)
     end
 
     SaveVampireData()
@@ -179,6 +187,14 @@ if SERVER then
         net.Send(ply)
     end
 end
+
+hook.Add("PlayerInitialSpawn", "LoadVampireData", function(ply)
+    LoadVampireData(ply)
+end)
+
+hook.Add("PlayerDisconnected", "SaveVampireData", function(ply)
+    SaveVampireData(ply)
+end)
 
 -- Load vampire data when the server starts
 hook.Add("Initialize", "LoadVampireData", LoadVampireData)

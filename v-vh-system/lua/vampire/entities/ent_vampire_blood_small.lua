@@ -1,16 +1,18 @@
--- Vampire Cure Entity
+-- Small Vampire Blood Entity
 
 AddCSLuaFile()
 
+ENT = {}
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
-ENT.PrintName = "Vampire Cure"
+ENT.PrintName = "Small Vampire Blood"
 ENT.Author = "Your Name"
+ENT.Category = "Vampire System"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
 
 function ENT:Initialize()
-    self:SetModel("models/props_junk/watermelon01.mdl")
+    self:SetModel("models/props_junk/PopCan01a.mdl")
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
@@ -21,9 +23,10 @@ function ENT:Initialize()
 end
 
 function ENT:Use(activator, caller)
-    if activator:IsPlayer() and IsVampire(activator) then
-        RemoveVampire(activator)
-        activator:Kill()
+    if activator:IsPlayer() then
+        AddBlood(activator, 2500) -- Give 50 blood
         self:Remove()
     end
 end
+
+scripted_ents.Register(ENT, "ent_vampire_blood_small")

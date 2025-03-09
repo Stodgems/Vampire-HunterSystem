@@ -2,10 +2,12 @@
 
 AddCSLuaFile()
 
+ENT = {}
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Vampire Blood"
 ENT.Author = "Your Name"
+ENT.Category = "Vampire System"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
 
@@ -26,3 +28,5 @@ function ENT:Use(activator, caller)
         self:Remove()
     end
 end
+
+scripted_ents.Register(ENT, "ent_vampire_blood")

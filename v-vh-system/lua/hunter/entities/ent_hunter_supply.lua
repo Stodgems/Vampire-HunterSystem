@@ -1,16 +1,18 @@
--- Small Vampire Blood Entity
+-- Hunter Supply Entity
 
 AddCSLuaFile()
 
+ENT = {}
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
-ENT.PrintName = "Small Vampire Blood"
+ENT.PrintName = "Hunter Supply"
 ENT.Author = "Your Name"
+ENT.Category = "Hunter System"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
 
 function ENT:Initialize()
-    self:SetModel("models/props_junk/PopCan01a.mdl")
+    self:SetModel("models/props_junk/wood_crate001a.mdl")
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
@@ -22,7 +24,9 @@ end
 
 function ENT:Use(activator, caller)
     if activator:IsPlayer() then
-        AddBlood(activator, 2500) -- Give 50 blood
+        activator:GiveAmmo(10, "XBowBolt", true)
         self:Remove()
     end
 end
+
+scripted_ents.Register(ENT, "ent_hunter_supply")

@@ -1,5 +1,6 @@
 -- Vampire SWEP
 
+SWEP = {}
 SWEP.PrintName = "Vampire Drain"
 SWEP.Author = "Your Name"
 SWEP.Instructions = "Left click to drain blood from NPCs or players."
@@ -8,15 +9,19 @@ SWEP.Category = "Vampire System"
 SWEP.Spawnable = true
 SWEP.AdminOnly = true
 
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
+SWEP.Primary = {
+    ClipSize = -1,
+    DefaultClip = -1,
+    Automatic = true,
+    Ammo = "none"
+}
 
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
+SWEP.Secondary = {
+    ClipSize = -1,
+    DefaultClip = -1,
+    Automatic = false,
+    Ammo = "none"
+}
 
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_arms_citizen.mdl"
@@ -54,3 +59,12 @@ end
 function SWEP:SecondaryAttack()
     -- No secondary attack
 end
+
+function DrainBlood(ply, target)
+    if not IsVampire(ply) then return end
+    if not IsValid(target) or target:Health() <= 0 then return end
+
+    AddBlood(ply, 50)
+end
+
+weapons.Register(SWEP, "weapon_vampire")

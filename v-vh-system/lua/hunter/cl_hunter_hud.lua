@@ -2,7 +2,8 @@
 
 local hunterData = {
     experience = 0,
-    tier = "Novice"
+    tier = "Novice",
+    hearts = 0
 }
 
 local newTierMessage = ""
@@ -11,6 +12,7 @@ local newTierMessageTime = 0
 net.Receive("UpdateHunterHUD", function()
     hunterData.experience = net.ReadInt(32)
     hunterData.tier = net.ReadString()
+    hunterData.hearts = net.ReadInt(32)
 end)
 
 net.Receive("SyncHunterData", function()
@@ -43,17 +45,21 @@ local function DrawHunterHUD()
 
     local experience = hunterData.experience
     local tier = hunterData.tier
+    local hearts = hunterData.hearts
     local nextThreshold = GetNextTierThreshold(tier)
     local progress = math.Clamp(experience / nextThreshold, 0, 1)
 
     -- Draw background
-    draw.RoundedBox(10, 10, ScrH() - 230, 250, 100, Color(0, 0, 0, 150))
+    draw.RoundedBox(10, 10, ScrH() - 260, 250, 130, Color(0, 0, 0, 150))
 
     -- Draw experience amount
-    draw.SimpleText("Experience: " .. experience, "Trebuchet24", 20, ScrH() - 220, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Experience: " .. experience, "Trebuchet24", 20, ScrH() - 250, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw hunter tier
-    draw.SimpleText("Tier: " .. tier, "Trebuchet24", 20, ScrH() - 190, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Tier: " .. tier, "Trebuchet24", 20, ScrH() - 220, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+    -- Draw vampire hearts
+    draw.SimpleText("Vampire Hearts: " .. hearts, "Trebuchet24", 20, ScrH() - 190, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw experience bar
     local experienceBarWidth = progress * 200

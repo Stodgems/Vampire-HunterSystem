@@ -2,7 +2,8 @@
 
 local vampireData = {
     blood = 0,
-    tier = "Thrall"
+    tier = "Thrall",
+    medallions = 0
 }
 
 local newTierMessage = ""
@@ -11,6 +12,7 @@ local newTierMessageTime = 0
 net.Receive("UpdateVampireHUD", function()
     vampireData.blood = net.ReadInt(32)
     vampireData.tier = net.ReadString()
+    vampireData.medallions = net.ReadInt(32)
 end)
 
 net.Receive("SyncVampireData", function()
@@ -43,17 +45,21 @@ local function DrawVampireHUD()
 
     local blood = vampireData.blood
     local tier = vampireData.tier
+    local medallions = vampireData.medallions
     local nextThreshold = GetNextTierThreshold(tier)
     local progress = math.Clamp(blood / nextThreshold, 0, 1)
 
     -- Draw background
-    draw.RoundedBox(10, 10, ScrH() - 230, 250, 100, Color(0, 0, 0, 150))
+    draw.RoundedBox(10, 10, ScrH() - 290, 250, 160, Color(0, 0, 0, 150))
 
     -- Draw blood amount
-    draw.SimpleText("Blood: " .. blood .. "ml", "Trebuchet24", 20, ScrH() - 220, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Blood: " .. blood, "Trebuchet24", 20, ScrH() - 280, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw vampire tier
-    draw.SimpleText("Tier: " .. tier, "Trebuchet24", 20, ScrH() - 190, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Tier: " .. tier, "Trebuchet24", 20, ScrH() - 250, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+    -- Draw hunter medallions
+    draw.SimpleText("Medallions: " .. medallions, "Trebuchet24", 20, ScrH() - 220, Color(255, 215, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw blood bar
     local bloodBarWidth = progress * 200

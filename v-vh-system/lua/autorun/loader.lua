@@ -59,6 +59,10 @@ else
 	end
 end
 
+-- Load the global config
+include("config/sh_global_config.lua")
+AddCSLuaFile("config/sh_global_config.lua")
+
 -- Load the vampire subfolder
 if SERVER then
 	V_VH.RecursiveServerLoader("vampire/")
@@ -67,7 +71,10 @@ if SERVER then
     V_VH.RecursiveServerLoader("hunter/")
     V_VH.RecursiveServerLoader("hunter/weapons/")
     V_VH.RecursiveServerLoader("hunter/entities/")
-    V_VH.RecursiveServerLoader("entities/")
+    V_VH.RecursiveServerLoader("hunter/entities/merchant/")
+    AddCSLuaFile("cl_admin_menu.lua")
+    AddCSLuaFile("vampire/cl_vampire_hud.lua")
+    include("sv_admin_menu.lua")
 else
 	V_VH.RecursiveClientLoader("vampire/")
 	V_VH.RecursiveClientLoader("vampire/weapons/")
@@ -75,5 +82,7 @@ else
     V_VH.RecursiveClientLoader("hunter/")
     V_VH.RecursiveClientLoader("hunter/weapons/")
     V_VH.RecursiveClientLoader("hunter/entities/")
-    V_VH.RecursiveClientLoader("entities/")
+    V_VH.RecursiveClientLoader("hunter/entities/merchant/")
+    include("cl_admin_menu.lua")
+    include("vampire/cl_vampire_hud.lua")
 end

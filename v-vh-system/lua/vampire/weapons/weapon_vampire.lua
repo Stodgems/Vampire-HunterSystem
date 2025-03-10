@@ -1,10 +1,13 @@
 -- Vampire SWEP
 
 SWEP = {}
+SWEP.Base = "weapon_base"
 SWEP.PrintName = "Vampire Drain"
 SWEP.Author = "Your Name"
 SWEP.Instructions = "Left click to drain blood from NPCs or players."
 SWEP.Category = "Vampire System"
+SWEP.ClassName = "weapon_vampire"
+SWEP.Slot = 1
 
 SWEP.Spawnable = true
 SWEP.AdminOnly = true

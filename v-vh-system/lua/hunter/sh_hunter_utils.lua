@@ -18,7 +18,7 @@ end
 -- Function to save hunter data to the SQLite database
 function SaveHunterData()
     for steamID, data in pairs(hunters) do
-        sql.Query(string.format("REPLACE INTO hunter_data (steamID, experience, tier) VALUES ('%s', %d, '%s')", steamID, data.experience, data.tier))
+        sql.Query(string.format("REPLACE INTO hunter_data (steamID, experience, tier, hearts, weapons) VALUES ('%s', %d, '%s', %d, '%s')", steamID, data.experience, data.tier, data.hearts or 0, table.concat(data.weapons or {}, ",")))
     end
 end
 
@@ -30,19 +30,19 @@ end
 -- Function to load hunter data from the SQLite database
 local function LoadHunterData()
     if not sql.TableExists("hunter_data") then
-        sql.Query("CREATE TABLE hunter_data (steamID TEXT PRIMARY KEY, experience INTEGER, tier TEXT)")
+        sql.Query("CREATE TABLE hunter_data (steamID TEXT PRIMARY KEY, experience INTEGER, tier TEXT, hearts INTEGER, weapons TEXT)")
     end
 
     local result = sql.Query("SELECT * FROM hunter_data")
     if result then
         for _, row in ipairs(result) do
-            hunters[row.steamID] = { experience = tonumber(row.experience), tier = row.tier }
+            hunters[row.steamID] = { experience = tonumber(row.experience), tier = row.tier, hearts = tonumber(row.hearts) or 0, weapons = string.Explode(",", row.weapons or "") }
         end
     end
 end
 
 -- Function to sync hunter data with clients
-local function SyncHunterData()
+function SyncHunterData()
     if SERVER then
         if timer.Exists("SyncHunterDataTimer") then return end
         timer.Create("SyncHunterDataTimer", 1, 1, function()
@@ -53,16 +53,21 @@ local function SyncHunterData()
     end
 end
 
+-- Function to give hunter weapons
+local function GiveHunterWeapons(ply)
+    ply:Give("weapon_stake")
+end
+
 -- Function to turn a player into a hunter
 function MakeHunter(ply)
     if not ply:IsPlayer() then return end
     if IsVampire(ply) then
         RemoveVampire(ply)
     end
-    hunters[ply:SteamID()] = { experience = 0, tier = "Novice" }
+    hunters[ply:SteamID()] = { experience = 0, tier = "Novice", hearts = 0, weapons = {} }
     UpdateHunterStats(ply)
     ply:ChatPrint("You have been turned into a hunter!")
-    ply:Give("weapon_hunter")
+    GiveHunterWeapons(ply)
     SaveHunterData()
     SyncHunterData()
     if SERVER then
@@ -151,6 +156,18 @@ function AddExperience(ply, amount)
     end
 end
 
+-- Function to add a vampire heart to a hunter
+function AddVampireHeart(ply)
+    if not IsHunter(ply) then return end
+    local hunter = hunters[ply:SteamID()]
+    hunter.hearts = (hunter.hearts or 0) + 1
+    SaveHunterData()
+    SyncHunterData()
+    if SERVER then
+        UpdateHunterHUD(ply)
+    end
+end
+
 -- Function to update the hunter HUD
 if SERVER then
     function UpdateHunterHUD(ply)
@@ -159,6 +176,7 @@ if SERVER then
         net.Start("UpdateHunterHUD")
         net.WriteInt(hunter.experience, 32)
         net.WriteString(hunter.tier)
+        net.WriteInt(hunter.hearts or 0, 32)
         net.Send(ply)
     end
 end
@@ -184,11 +202,11 @@ hook.Add("PlayerInitialSpawn", "SyncHunterData", function(ply)
     net.Send(ply)
 end)
 
-// Give hunter weapon to hunters when they spawn
+// Give hunter weapons to hunters when they spawn
 hook.Add("PlayerSpawn", "HunterPlayerSpawn", function(ply)
     if IsHunter(ply) then
         UpdateHunterStats(ply)
-        ply:Give("weapon_hunter")
+        GiveHunterWeapons(ply)
         timer.Simple(0.1, function()
             if IsValid(ply) then
                 UpdateHunterStats(ply)
@@ -197,7 +215,7 @@ hook.Add("PlayerSpawn", "HunterPlayerSpawn", function(ply)
     end
 end)
 
-// Give hunter weapon to hunters when they change job
+// Give hunter weapons to hunters when they change job
 hook.Add("OnPlayerChangedTeam", "HunterPlayerChangedTeam", function(ply, oldTeam, newTeam)
     if IsHunter(ply) then
         timer.Simple(0.1, function()
@@ -219,10 +237,11 @@ hook.Add("PlayerDeath", "HunterPlayerDeath", function(ply)
     end
 end)
 
-// Add experience to hunter when they kill a vampire
+// Add experience and a vampire heart to hunter when they kill a vampire
 hook.Add("PlayerDeath", "HunterKillsVampire", function(victim, inflictor, attacker)
     if IsHunter(attacker) and IsVampire(victim) then
         AddExperience(attacker, 1000)
-        attacker:ChatPrint("You have gained 1000 experience for killing a vampire!")
+        AddVampireHeart(attacker)
+        attacker:ChatPrint("You have gained 1000 experience and a vampire heart for killing a vampire!")
     end
 end)

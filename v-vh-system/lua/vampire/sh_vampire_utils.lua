@@ -18,7 +18,7 @@ end
 -- Function to save vampire data to the SQLite database
 function SaveVampireData()
     for steamID, data in pairs(vampires) do
-        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier) VALUES ('%s', %d, '%s')", steamID, data.blood, data.tier))
+        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier, medallions) VALUES ('%s', %d, '%s', %d)", steamID, data.blood, data.tier, data.medallions or 0))
     end
 end
 
@@ -30,13 +30,13 @@ end
 -- Function to load vampire data from the SQLite database
 local function LoadVampireData()
     if not sql.TableExists("vampire_data") then
-        sql.Query("CREATE TABLE vampire_data (steamID TEXT PRIMARY KEY, blood INTEGER, tier TEXT)")
+        sql.Query("CREATE TABLE vampire_data (steamID TEXT PRIMARY KEY, blood INTEGER, tier TEXT, medallions INTEGER)")
     end
 
     local result = sql.Query("SELECT * FROM vampire_data")
     if result then
         for _, row in ipairs(result) do
-            vampires[row.steamID] = { blood = tonumber(row.blood), tier = row.tier }
+            vampires[row.steamID] = { blood = tonumber(row.blood), tier = row.tier, medallions = tonumber(row.medallions) or 0 }
         end
     end
 end
@@ -59,7 +59,7 @@ function MakeVampire(ply)
     if IsHunter(ply) then
         RemoveHunter(ply)
     end
-    vampires[ply:SteamID()] = { blood = 0, tier = "Thrall" }
+    vampires[ply:SteamID()] = { blood = 0, tier = "Thrall", medallions = 0 }
     UpdateVampireStats(ply)
     ply:ChatPrint("You have been turned into a vampire!")
     ply:Give("weapon_vampire")
@@ -176,6 +176,18 @@ function DrainBlood(ply, target)
     AddBlood(ply, 50)
 end
 
+-- Function to add a hunter medallion to a vampire
+function AddHunterMedallion(ply)
+    if not IsVampire(ply) then return end
+    local vampire = vampires[ply:SteamID()]
+    vampire.medallions = (vampire.medallions or 0) + 1
+    SaveVampireData()
+    SyncVampireData()
+    if SERVER then
+        UpdateVampireHUD(ply)
+    end
+end
+
 -- Function to update the vampire HUD
 if SERVER then
     function UpdateVampireHUD(ply)
@@ -184,6 +196,7 @@ if SERVER then
         net.Start("UpdateVampireHUD")
         net.WriteInt(vampire.blood, 32)
         net.WriteString(vampire.tier)
+        net.WriteInt(vampire.medallions or 0, 32)
         net.Send(ply)
     end
 end
@@ -241,5 +254,13 @@ hook.Add("PlayerDeath", "VampirePlayerDeath", function(ply)
                 UpdateVampireStats(ply)
             end
         end)
+    end
+end)
+
+// Add a hunter medallion to vampire when they kill a hunter
+hook.Add("PlayerDeath", "VampireKillsHunter", function(victim, inflictor, attacker)
+    if IsVampire(attacker) and IsHunter(victim) then
+        AddHunterMedallion(attacker)
+        attacker:ChatPrint("You have collected a hunter's medallion!")
     end
 end)

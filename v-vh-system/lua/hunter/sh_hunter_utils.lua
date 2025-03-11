@@ -18,13 +18,15 @@ end
 -- Function to save hunter data to the SQLite database
 function SaveHunterData()
     for steamID, data in pairs(hunters) do
-        sql.Query(string.format("REPLACE INTO hunter_data (steamID, experience, tier, hearts, weapons) VALUES ('%s', %d, '%s', %d, '%s')", steamID, data.experience, data.tier, data.hearts or 0, table.concat(data.weapons or {}, ",")))
+        local query = string.format("REPLACE INTO hunter_data (steamID, experience, tier, hearts, weapons) VALUES ('%s', %d, '%s', %d, '%s')", steamID, data.experience, data.tier, data.hearts or 0, table.concat(data.weapons or {}, ","))
+        sql.Query(query)
     end
 end
 
 -- Function to remove hunter data from the SQLite database
 local function RemoveHunterData(steamID)
-    sql.Query(string.format("DELETE FROM hunter_data WHERE steamID = '%s'", steamID))
+    local query = string.format("DELETE FROM hunter_data WHERE steamID = '%s'", steamID)
+    sql.Query(query)
 end
 
 -- Function to load hunter data from the SQLite database

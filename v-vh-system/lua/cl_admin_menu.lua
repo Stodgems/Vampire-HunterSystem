@@ -157,6 +157,18 @@ net.Receive("OpenAdminMenu", function()
         net.Start("RequestMerchantItems")
         net.SendToServer()
     end
+
+    local managePlayerWeaponsButton = vgui.Create("DButton", frame)
+    managePlayerWeaponsButton:SetText("Manage Player Weapons")
+    managePlayerWeaponsButton:Dock(BOTTOM)
+    managePlayerWeaponsButton.DoClick = function()
+        local target = getSelectedPlayer()
+        if target then
+            net.Start("RequestPlayerWeapons")
+            net.WriteString(target:SteamID())
+            net.SendToServer()
+        end
+    end
 end)
 
 net.Receive("OpenMerchantItemsMenu", function()
@@ -208,6 +220,57 @@ net.Receive("OpenMerchantItemsMenu", function()
         if selectedItem then
             local weaponClass = selectedItem:GetColumnText(1)
             net.Start("RemoveMerchantItem")
+            net.WriteString(weaponClass)
+            net.SendToServer()
+        end
+    end
+end)
+
+net.Receive("OpenPlayerWeaponsMenu", function()
+    local weapons = net.ReadTable()
+    local targetSteamID = net.ReadString()
+
+    local frame = vgui.Create("DFrame")
+    frame:SetTitle("Manage Player Weapons")
+    frame:SetSize(400, 500)
+    frame:Center()
+    frame:MakePopup()
+
+    local weaponList = vgui.Create("DListView", frame)
+    weaponList:Dock(FILL)
+    weaponList:SetMultiSelect(false)
+    weaponList:AddColumn("Weapon Class")
+
+    for _, weapon in ipairs(weapons) do
+        weaponList:AddLine(weapon)
+    end
+
+    local function getSelectedWeapon()
+        local selected = weaponList:GetSelectedLine()
+        if not selected then return nil end
+        return weaponList:GetLine(selected):GetColumnText(1)
+    end
+
+    local addWeaponButton = vgui.Create("DButton", frame)
+    addWeaponButton:SetText("Add Weapon")
+    addWeaponButton:Dock(BOTTOM)
+    addWeaponButton.DoClick = function()
+        Derma_StringRequest("Add Weapon", "Enter the weapon class:", "", function(weaponClass)
+            net.Start("AdminAddPlayerWeapon")
+            net.WriteString(targetSteamID)
+            net.WriteString(weaponClass)
+            net.SendToServer()
+        end)
+    end
+
+    local removeWeaponButton = vgui.Create("DButton", frame)
+    removeWeaponButton:SetText("Remove Weapon")
+    removeWeaponButton:Dock(BOTTOM)
+    removeWeaponButton.DoClick = function()
+        local weaponClass = getSelectedWeapon()
+        if weaponClass then
+            net.Start("AdminRemovePlayerWeapon")
+            net.WriteString(targetSteamID)
             net.WriteString(weaponClass)
             net.SendToServer()
         end

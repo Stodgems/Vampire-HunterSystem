@@ -1,5 +1,8 @@
 -- Admin Menu Logic
 
+include("hunter/sv_hunter_merchant.lua")
+include("hunter/sh_hunter_utils.lua") -- Ensure this file is included to access SaveHunterWeapons
+
 util.AddNetworkString("OpenAdminMenu")
 util.AddNetworkString("AdminMakeVampire")
 util.AddNetworkString("AdminMakeHunter")
@@ -14,6 +17,10 @@ util.AddNetworkString("RequestMerchantItems")
 util.AddNetworkString("OpenMerchantItemsMenu")
 util.AddNetworkString("EditMerchantItem")
 util.AddNetworkString("RemoveMerchantItem")
+util.AddNetworkString("RequestPlayerWeapons")
+util.AddNetworkString("OpenPlayerWeaponsMenu")
+util.AddNetworkString("AdminAddPlayerWeapon")
+util.AddNetworkString("AdminRemovePlayerWeapon")
 
 -- Function to check if a player is an admin
 local function IsAdmin(ply)
@@ -178,6 +185,51 @@ net.Receive("RemoveMerchantItem", function(len, ply)
     net.Start("SyncHunterMerchantItems")
     net.WriteTable(HunterMerchantItems)
     net.Broadcast()
+end)
+
+net.Receive("RequestPlayerWeapons", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        local weapons = target.hunterWeapons or {}
+        net.Start("OpenPlayerWeaponsMenu")
+        net.WriteTable(weapons)
+        net.WriteString(targetSteamID)
+        net.Send(ply)
+    end
+end)
+
+net.Receive("AdminAddPlayerWeapon", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local weaponClass = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        if not target.hunterWeapons then
+            target.hunterWeapons = {}
+        end
+        if not table.HasValue(target.hunterWeapons, weaponClass) then
+            table.insert(target.hunterWeapons, weaponClass)
+            SaveHunterWeapons(target)
+            target:ChatPrint("You have been given the weapon: " .. weaponClass)
+        end
+    end
+end)
+
+net.Receive("AdminRemovePlayerWeapon", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local weaponClass = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        if target.hunterWeapons and table.HasValue(target.hunterWeapons, weaponClass) then
+            table.RemoveByValue(target.hunterWeapons, weaponClass)
+            SaveHunterWeapons(target)
+            target:StripWeapon(weaponClass)
+            target:ChatPrint("The weapon " .. weaponClass .. " has been removed from you.")
+        end
+    end
 end)
 
 hook.Add("PlayerSay", "OpenAdminMenuCommand", function(ply, text)

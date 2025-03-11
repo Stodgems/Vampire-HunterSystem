@@ -3,10 +3,14 @@
 util.AddNetworkString("OpenHunterMerchantMenu")
 util.AddNetworkString("BuyHunterWeapon")
 util.AddNetworkString("SyncHunterMerchantItems")
+util.AddNetworkString("SyncPurchasedItems")
 
-HunterMerchantItems = HunterMerchantItems or {}
+HunterMerchantItems = {}
+PurchasedItems = {}
 
 local function LoadHunterMerchantItems()
+    HunterMerchantItems = {} -- Clear the table to prevent duplicates
+
     if not sql.TableExists("hunter_merchant_items") then
         sql.Query("CREATE TABLE hunter_merchant_items (class TEXT, cost INTEGER)")
     end
@@ -28,14 +32,39 @@ local function LoadHunterMerchantItems()
     end
     if not swordExists then
         table.insert(HunterMerchantItems, {class = "weapon_hunter_sword", cost = 5})
+        sql.Query("INSERT INTO hunter_merchant_items (class, cost) VALUES ('weapon_hunter_sword', 5)")
     end
 end
 
-LoadHunterMerchantItems()
+local function LoadPurchasedItems()
+    if not sql.TableExists("purchased_items") then
+        sql.Query("CREATE TABLE purchased_items (steamID TEXT, class TEXT)")
+    end
 
-local function SaveHunterWeapons(ply)
+    local result = sql.Query("SELECT * FROM purchased_items")
+    if result then
+        for _, row in ipairs(result) do
+            PurchasedItems[row.steamID] = PurchasedItems[row.steamID] or {}
+            table.insert(PurchasedItems[row.steamID], row.class)
+        end
+    end
+end
+
+local function SavePurchasedItem(ply, class)
+    sql.Query(string.format("INSERT INTO purchased_items (steamID, class) VALUES ('%s', '%s')", ply:SteamID(), class))
+end
+
+LoadHunterMerchantItems()
+LoadPurchasedItems()
+
+function SaveHunterWeapons(ply)
+    if not ply.hunterWeapons then
+        ply.hunterWeapons = {}
+    end
     local weapons = table.concat(ply.hunterWeapons, ",")
-    sql.Query(string.format("UPDATE hunter_data SET weapons = '%s' WHERE steamID = '%s'", weapons, ply:SteamID()))
+    weapons = weapons:gsub("^,", "") -- Remove leading comma if present
+    local query = string.format("UPDATE hunter_data SET weapons = '%s' WHERE steamID = '%s'", weapons, ply:SteamID())
+    sql.Query(query)
 end
 
 local function LoadHunterWeapons(ply)
@@ -45,6 +74,7 @@ local function LoadHunterWeapons(ply)
     else
         ply.hunterWeapons = {}
     end
+    hunters[ply:SteamID()].weapons = ply.hunterWeapons -- Ensure the hunter data is updated with the loaded weapons
 end
 
 net.Receive("BuyHunterWeapon", function(len, ply)
@@ -66,16 +96,32 @@ net.Receive("BuyHunterWeapon", function(len, ply)
     if not ply.hunterWeapons then
         ply.hunterWeapons = {}
     end
-    table.insert(ply.hunterWeapons, weaponClass)
-    SaveHunterWeapons(ply)
+    if not table.HasValue(ply.hunterWeapons, weaponClass) then
+        table.insert(ply.hunterWeapons, weaponClass)
+        SaveHunterWeapons(ply)
+    end
+    -- Ensure the hunter data is updated with the new weapons
+    hunters[ply:SteamID()].weapons = ply.hunterWeapons
     SaveHunterData()
     SyncHunterData()
     UpdateHunterHUD(ply)
+
+    -- Track purchased items
+    PurchasedItems[ply:SteamID()] = PurchasedItems[ply:SteamID()] or {}
+    table.insert(PurchasedItems[ply:SteamID()], weaponClass)
+    SavePurchasedItem(ply, weaponClass)
+    net.Start("SyncPurchasedItems")
+    net.WriteTable(PurchasedItems[ply:SteamID()])
+    net.Send(ply)
 end)
 
 hook.Add("PlayerInitialSpawn", "SyncHunterMerchantItems", function(ply)
     net.Start("SyncHunterMerchantItems")
     net.WriteTable(HunterMerchantItems)
+    net.Send(ply)
+
+    net.Start("SyncPurchasedItems")
+    net.WriteTable(PurchasedItems[ply:SteamID()] or {})
     net.Send(ply)
 end)
 

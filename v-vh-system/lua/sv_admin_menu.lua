@@ -31,7 +31,9 @@ end
 local function SaveHunterMerchantItems()
     sql.Query("DELETE FROM hunter_merchant_items")
     for _, item in ipairs(HunterMerchantItems) do
-        sql.Query(string.format("INSERT INTO hunter_merchant_items (class, cost) VALUES ('%s', %d)", item.class, item.cost))
+        local classEscaped = sql.SQLStr(item.class)
+        local cost = tonumber(item.cost)
+        sql.Query(string.format("INSERT INTO hunter_merchant_items (class, cost) VALUES (%s, %d)", classEscaped, cost))
     end
 end
 

@@ -18,13 +18,18 @@ end
 -- Function to save vampire data to the SQLite database
 function SaveVampireData()
     for steamID, data in pairs(vampires) do
-        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier, medallions) VALUES ('%s', %d, '%s', %d)", steamID, data.blood, data.tier, data.medallions or 0))
+        local steamIDEscaped = sql.SQLStr(steamID)
+        local blood = tonumber(data.blood)
+        local tierEscaped = sql.SQLStr(data.tier)
+        local medallions = tonumber(data.medallions or 0)
+        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier, medallions) VALUES (%s, %d, %s, %d)", steamIDEscaped, blood, tierEscaped, medallions))
     end
 end
 
 -- Function to remove vampire data from the SQLite database
 local function RemoveVampireData(steamID)
-    sql.Query(string.format("DELETE FROM vampire_data WHERE steamID = '%s'", steamID))
+    local steamIDEscaped = sql.SQLStr(steamID)
+    sql.Query(string.format("DELETE FROM vampire_data WHERE steamID = %s", steamIDEscaped))
 end
 
 -- Function to load vampire data from the SQLite database

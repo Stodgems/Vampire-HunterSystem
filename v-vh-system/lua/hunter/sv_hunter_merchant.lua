@@ -51,7 +51,9 @@ local function LoadPurchasedItems()
 end
 
 local function SavePurchasedItem(ply, class)
-    sql.Query(string.format("INSERT INTO purchased_items (steamID, class) VALUES ('%s', '%s')", ply:SteamID(), class))
+    local steamID = sql.SQLStr(ply:SteamID())
+    local classEscaped = sql.SQLStr(class)
+    sql.Query(string.format("INSERT INTO purchased_items (steamID, class) VALUES (%s, %s)", steamID, classEscaped))
 end
 
 LoadHunterMerchantItems()
@@ -63,12 +65,15 @@ function SaveHunterWeapons(ply)
     end
     local weapons = table.concat(ply.hunterWeapons, ",")
     weapons = weapons:gsub("^,", "") -- Remove leading comma if present
-    local query = string.format("UPDATE hunter_data SET weapons = '%s' WHERE steamID = '%s'", weapons, ply:SteamID())
+    local steamID = sql.SQLStr(ply:SteamID())
+    local weaponsEscaped = sql.SQLStr(weapons)
+    local query = string.format("UPDATE hunter_data SET weapons = %s WHERE steamID = %s", weaponsEscaped, steamID)
     sql.Query(query)
 end
 
 local function LoadHunterWeapons(ply)
-    local result = sql.QueryRow(string.format("SELECT weapons FROM hunter_data WHERE steamID = '%s'", ply:SteamID()))
+    local steamID = sql.SQLStr(ply:SteamID())
+    local result = sql.QueryRow(string.format("SELECT weapons FROM hunter_data WHERE steamID = %s", steamID))
     if result and result.weapons then
         ply.hunterWeapons = string.Explode(",", result.weapons)
     else

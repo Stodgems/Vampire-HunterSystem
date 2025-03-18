@@ -2,6 +2,7 @@
 
 include("hunter/sv_hunter_merchant.lua")
 include("hunter/sh_hunter_utils.lua") -- Ensure this file is included to access SaveHunterWeapons
+include("vampire/sv_vampire_abilities.lua") -- Include the vampire abilities logic
 
 util.AddNetworkString("OpenAdminMenu")
 util.AddNetworkString("AdminMakeVampire")
@@ -21,6 +22,10 @@ util.AddNetworkString("RequestPlayerWeapons")
 util.AddNetworkString("OpenPlayerWeaponsMenu")
 util.AddNetworkString("AdminAddPlayerWeapon")
 util.AddNetworkString("AdminRemovePlayerWeapon")
+util.AddNetworkString("RequestVampireAbilities")
+util.AddNetworkString("OpenVampireAbilitiesMenu")
+util.AddNetworkString("EditVampireAbility")
+util.AddNetworkString("RemoveVampireAbility")
 
 -- Function to check if a player is an admin
 local function IsAdmin(ply)
@@ -232,6 +237,44 @@ net.Receive("AdminRemovePlayerWeapon", function(len, ply)
             target:ChatPrint("The weapon " .. weaponClass .. " has been removed from you.")
         end
     end
+end)
+
+net.Receive("RequestVampireAbilities", function(len, ply)
+    if not IsAdmin(ply) then return end
+    net.Start("OpenVampireAbilitiesMenu")
+    net.WriteTable(VampireAbilities)
+    net.Send(ply)
+end)
+
+net.Receive("EditVampireAbility", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local abilityClass = net.ReadString()
+    local cost = net.ReadInt(32)
+    for _, ability in ipairs(VampireAbilities) do
+        if ability.class == abilityClass then
+            ability.cost = cost
+            break
+        end
+    end
+    SaveVampireAbilities()
+    net.Start("SyncVampireAbilities")
+    net.WriteTable(VampireAbilities)
+    net.Broadcast()
+end)
+
+net.Receive("RemoveVampireAbility", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local abilityClass = net.ReadString()
+    for i, ability in ipairs(VampireAbilities) do
+        if ability.class == abilityClass then
+            table.remove(VampireAbilities, i)
+            break
+        end
+    end
+    SaveVampireAbilities()
+    net.Start("SyncVampireAbilities")
+    net.WriteTable(VampireAbilities)
+    net.Broadcast()
 end)
 
 hook.Add("PlayerSay", "OpenAdminMenuCommand", function(ply, text)

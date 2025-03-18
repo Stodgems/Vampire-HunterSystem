@@ -74,7 +74,9 @@ if SERVER then
     V_VH.RecursiveServerLoader("hunter/entities/merchant/")
     AddCSLuaFile("cl_admin_menu.lua")
     AddCSLuaFile("vampire/cl_vampire_hud.lua")
+    AddCSLuaFile("vampire/cl_vampire_abilities.lua")
     include("sv_admin_menu.lua")
+    include("vampire/sv_vampire_abilities.lua")
 else
 	V_VH.RecursiveClientLoader("vampire/")
 	V_VH.RecursiveClientLoader("vampire/weapons/")
@@ -85,4 +87,5 @@ else
     V_VH.RecursiveClientLoader("hunter/entities/merchant/")
     include("cl_admin_menu.lua")
     include("vampire/cl_vampire_hud.lua")
+    include("vampire/cl_vampire_abilities.lua")
 end

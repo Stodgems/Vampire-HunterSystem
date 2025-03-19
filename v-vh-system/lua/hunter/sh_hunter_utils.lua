@@ -27,6 +27,7 @@ end
 local function RemoveHunterData(steamID)
     local query = string.format("DELETE FROM hunter_data WHERE steamID = '%s'", steamID)
     sql.Query(query)
+    sql.Query(string.format("DELETE FROM purchased_items WHERE steamID = %s", sql.SQLStr(steamID))) -- Remove purchased items
 end
 
 -- Function to load hunter data from the SQLite database

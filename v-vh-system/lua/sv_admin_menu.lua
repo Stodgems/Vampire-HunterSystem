@@ -3,6 +3,7 @@
 include("hunter/sv_hunter_merchant.lua")
 include("hunter/sh_hunter_utils.lua") -- Ensure this file is included to access SaveHunterWeapons
 include("vampire/sv_vampire_abilities.lua") -- Include the vampire abilities logic
+include("vampire/sh_vampire_utils.lua") -- Ensure this file is included to access SyncVampireData
 
 util.AddNetworkString("OpenAdminMenu")
 util.AddNetworkString("AdminMakeVampire")

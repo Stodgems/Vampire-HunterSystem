@@ -30,6 +30,7 @@ end
 local function RemoveVampireData(steamID)
     local steamIDEscaped = sql.SQLStr(steamID)
     sql.Query(string.format("DELETE FROM vampire_data WHERE steamID = %s", steamIDEscaped))
+    sql.Query(string.format("DELETE FROM purchased_abilities WHERE steamID = %s", steamIDEscaped)) -- Remove purchased abilities
 end
 
 -- Function to load vampire data from the SQLite database

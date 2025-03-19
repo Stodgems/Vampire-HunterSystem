@@ -2,6 +2,7 @@
 
 AddCSLuaFile()
 
+ENT = {} -- Properly define the ENT table
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Vampire Abilities Trainer"

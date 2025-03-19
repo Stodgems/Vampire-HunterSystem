@@ -22,30 +22,17 @@ local function LoadVampireAbilities()
         end
     end
 
-    -- Ensure weapon_vampire_claws is always available
+    -- Ensure weapon_vampire_claws_leap is always available
     local clawsExists = false
     for _, ability in ipairs(VampireAbilities) do
-        if ability.class == "weapon_vampire_claws" then
+        if ability.class == "weapon_vampire_claws_leap" then
             clawsExists = true
             break
         end
     end
     if not clawsExists then
-        table.insert(VampireAbilities, {class = "weapon_vampire_claws", cost = 5})
-        sql.Query("INSERT INTO vampire_abilities (class, cost) VALUES ('weapon_vampire_claws', 5)")
-    end
-
-    -- Ensure weapon_vampire_leap is always available
-    local leapExists = false
-    for _, ability in ipairs(VampireAbilities) do
-        if ability.class == "weapon_vampire_leap" then
-            leapExists = true
-            break
-        end
-    end
-    if not leapExists then
-        table.insert(VampireAbilities, {class = "weapon_vampire_leap", cost = 10})
-        sql.Query("INSERT INTO vampire_abilities (class, cost) VALUES ('weapon_vampire_leap', 10)")
+        table.insert(VampireAbilities, {class = "weapon_vampire_claws_leap", cost = 5})
+        sql.Query("INSERT INTO vampire_abilities (class, cost) VALUES ('weapon_vampire_claws_leap', 5)")
     end
 end
 
@@ -151,3 +138,15 @@ hook.Add("PlayerSpawn", "GiveVampireAbilitiesOnSpawn", function(ply)
         end
     end
 end)
+
+// Ensure SyncVampireData is defined
+function SyncVampireData()
+    if SERVER then
+        if timer.Exists("SyncVampireDataTimer") then return end
+        timer.Create("SyncVampireDataTimer", 1, 1, function()
+            net.Start("SyncVampireData")
+            net.WriteTable(vampires)
+            net.Broadcast()
+        end)
+    end
+end

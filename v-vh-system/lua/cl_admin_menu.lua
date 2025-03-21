@@ -185,6 +185,131 @@ net.Receive("OpenAdminMenu", function()
         net.Start("RequestVampireAbilities")
         net.SendToServer()
     end
+
+    -- Guild Admin Panel
+    local guildAdminPanel = vgui.Create("DPanel", sheet)
+    guildAdminPanel:Dock(FILL)
+    sheet:AddSheet("Guild Admin", guildAdminPanel, "icon16/group.png")
+
+    local guildList = vgui.Create("DListView", guildAdminPanel)
+    guildList:Dock(LEFT)
+    guildList:SetWidth(200)
+    guildList:SetMultiSelect(false)
+    guildList:AddColumn("Guild Name")
+
+    for guildName, _ in pairs(HunterGuildsConfig) do
+        guildList:AddLine(guildName)
+    end
+
+    local memberList = vgui.Create("DListView", guildAdminPanel)
+    memberList:Dock(FILL)
+    memberList:SetMultiSelect(false)
+    memberList:AddColumn("Player")
+    memberList:AddColumn("Rank")
+
+    local function updateMemberList(guildName)
+        memberList:Clear()
+        local members = {}
+        if guildName == "Guild of Shadows" then
+            table.insert(members, {name = "Lord of Shadow", rank = "Lord"})
+        elseif guildName == "Guild of Light" then
+            table.insert(members, {name = "Lord of Light", rank = "Lord"})
+        elseif guildName == "Guild of Strength" then
+            table.insert(members, {name = "Lord of Strength", rank = "Lord"})
+        end
+
+        -- Fetch player list from the database
+        net.Start("RequestGuildMembers")
+        net.WriteString(guildName)
+        net.SendToServer()
+
+        net.Receive("ReceiveGuildMembers", function()
+            local guildMembers = net.ReadTable()
+            for _, member in ipairs(guildMembers) do
+                table.insert(members, {name = member.name, rank = member.rank})
+            end
+
+            table.sort(members, function(a, b)
+                local guild = HunterGuildsConfig[guildName]
+                local aRankIndex = table.KeyFromValue(guild.ranks, a.rank) or 0
+                local bRankIndex = table.KeyFromValue(guild.ranks, b.rank) or 0
+                return aRankIndex < bRankIndex -- Change comparison to ensure higher ranks are at the top
+            end)
+
+            for _, member in ipairs(members) do
+                memberList:AddLine(member.name, member.rank)
+            end
+        end)
+    end
+
+    guildList.OnRowSelected = function(_, rowIndex, row)
+        local guildName = row:GetColumnText(1)
+        updateMemberList(guildName)
+    end
+
+    local function getSelectedGuild()
+        local selected = guildList:GetSelectedLine()
+        if not selected then return nil end
+        return guildList:GetLine(selected):GetColumnText(1)
+    end
+
+    local function getSelectedMember()
+        local selected = memberList:GetSelectedLine()
+        if not selected then return nil end
+        return memberList:GetLine(selected):GetColumnText(1), memberList:GetLine(selected):GetColumnText(2)
+    end
+
+    local promoteRankButton = vgui.Create("DButton", guildAdminPanel)
+    promoteRankButton:SetText("Promote Rank")
+    promoteRankButton:Dock(BOTTOM)
+    promoteRankButton.DoClick = function()
+        local guildName = getSelectedGuild()
+        local memberName, currentRank = getSelectedMember()
+        if guildName and memberName then
+            local rankDropdown = vgui.Create("DComboBox", guildAdminPanel)
+            rankDropdown:SetPos(10, frame:GetTall() - 80) -- Adjust position to be above the buttons
+            rankDropdown:SetSize(200, 20) -- Adjust size as needed
+            for _, rank in ipairs(HunterGuildsConfig[guildName].ranks) do
+                rankDropdown:AddChoice(rank)
+            end
+            rankDropdown.OnSelect = function(_, _, rank)
+                net.Start("AdminPromoteGuildRank")
+                net.WriteString(guildName)
+                net.WriteString(memberName)
+                net.WriteString(rank)
+                net.SendToServer()
+                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+                    updateMemberList(guildName)
+                end)
+            end
+        end
+    end
+
+    local demoteRankButton = vgui.Create("DButton", guildAdminPanel)
+    demoteRankButton:SetText("Demote Rank")
+    demoteRankButton:Dock(BOTTOM)
+    demoteRankButton.DoClick = function()
+        local guildName = getSelectedGuild()
+        local memberName, currentRank = getSelectedMember()
+        if guildName and memberName then
+            local rankDropdown = vgui.Create("DComboBox", guildAdminPanel)
+            rankDropdown:SetPos(10, frame:GetTall() - 50) -- Adjust position to be above the buttons
+            rankDropdown:SetSize(200, 20) -- Adjust size as needed
+            for _, rank in ipairs(HunterGuildsConfig[guildName].ranks) do
+                rankDropdown:AddChoice(rank)
+            end
+            rankDropdown.OnSelect = function(_, _, rank)
+                net.Start("AdminDemoteGuildRank")
+                net.WriteString(guildName)
+                net.WriteString(memberName)
+                net.WriteString(rank)
+                net.SendToServer()
+                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+                    updateMemberList(guildName)
+                end)
+            end
+        end
+    end
 end)
 
 net.Receive("OpenMerchantItemsMenu", function()

@@ -1,6 +1,8 @@
 -- Initialize the Hunter System addon
 AddCSLuaFile("sh_hunter_config.lua")
 AddCSLuaFile("sh_hunter_utils.lua")
+AddCSLuaFile("sh_hunter_guilds.lua") -- Add the Hunter Guilds config
+AddCSLuaFile("cl_hunter_guilds.lua") -- Add the Hunter Guilds client logic
 AddCSLuaFile("sv_hunter_commands.lua")
 AddCSLuaFile("weapons/weapon_stake.lua")
 AddCSLuaFile("weapons/weapon_hunter_sword.lua")
@@ -15,12 +17,15 @@ AddCSLuaFile("cl_hunter_merchant.lua")
 
 include("sh_hunter_config.lua")
 include("sh_hunter_utils.lua")
+include("sh_hunter_guilds.lua") -- Include the Hunter Guilds config
 include("sv_hunter_commands.lua")
 include("sv_hunter_merchant.lua")
+include("sv_hunter_guilds.lua") -- Include the Hunter Guilds server logic
 
 if CLIENT then
     include("cl_hunter_hud.lua")
     include("cl_hunter_merchant.lua")
+    include("cl_hunter_guilds.lua") -- Include the Hunter Guilds client logic
 end
 
 if SERVER then

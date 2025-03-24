@@ -71,14 +71,22 @@ net.Receive("OpenHunterGuildsMenu", function()
         return guildList:GetLine(selected):GetColumnText(1)
     end
 
-    local function canPromoteOrDemote()
-        local ply = LocalPlayer()
-        if not ply.hunterGuild then return false end
-        local guild = HunterGuildsConfig[ply.hunterGuild]
-        if not guild then return false end
-        local playerRank = ply.hunterGuildRank
-        local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
-        return playerIndex and playerIndex >= 4 -- Leader or above
+    local function getSelectedMember()
+        local selected = memberList:GetSelectedLine()
+        if not selected then return nil end
+        return memberList:GetLine(selected):GetColumnText(1)
+    end
+
+    local function getSelectedMemberSteamID()
+        local selected = memberList:GetSelectedLine()
+        if not selected then return nil end
+        local line = memberList:GetLine(selected)
+        for _, ply in ipairs(player.GetAll()) do
+            if ply:Nick() == line:GetColumnText(1) then
+                return ply:SteamID()
+            end
+        end
+        return nil
     end
 
     local joinGuildButton = vgui.Create("DButton", frame)
@@ -110,50 +118,106 @@ net.Receive("OpenHunterGuildsMenu", function()
         end)
     end
 
+    -- Add admin promote and demote buttons
     local promoteRankButton = vgui.Create("DButton", frame)
     promoteRankButton:SetText("Promote Rank")
     promoteRankButton:Dock(BOTTOM)
-    promoteRankButton:SetEnabled(canPromoteOrDemote())
     promoteRankButton.DoClick = function()
-        local selectedMember = memberList:GetSelectedLine()
-        if selectedMember then
-            local targetName = memberList:GetLine(selectedMember):GetColumnText(1)
-            local target = player.GetByNick(targetName)
-            if target then
-                net.Start("PromoteGuildRank")
-                net.WriteString(target:SteamID())
-                net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
-                    local guildName = getSelectedGuild()
-                    if guildName then
-                        updateMemberList(guildName)
-                    end
-                end)
-            end
+        local guildName = getSelectedGuild()
+        local memberSteamID = getSelectedMemberSteamID()
+        if guildName and memberSteamID then
+            net.Start("PromoteGuildRank")
+            net.WriteString(memberSteamID)
+            net.SendToServer()
+            timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+                updateMemberList(guildName)
+            end)
         end
     end
 
     local demoteRankButton = vgui.Create("DButton", frame)
     demoteRankButton:SetText("Demote Rank")
     demoteRankButton:Dock(BOTTOM)
-    demoteRankButton:SetEnabled(canPromoteOrDemote())
     demoteRankButton.DoClick = function()
-        local selectedMember = memberList:GetSelectedLine()
-        if selectedMember then
-            local targetName = memberList:GetLine(selectedMember):GetColumnText(1)
-            local target = player.GetByNick(targetName)
-            if target then
-                net.Start("DemoteGuildRank")
-                net.WriteString(target:SteamID())
+        local guildName = getSelectedGuild()
+        local memberSteamID = getSelectedMemberSteamID()
+        if guildName and memberSteamID then
+            net.Start("DemoteGuildRank")
+            net.WriteString(memberSteamID)
+            net.SendToServer()
+            timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+                updateMemberList(guildName)
+            end)
+        end
+    end
+
+    -- Add kick button for Leader and above rank + admins
+    local kickMemberButton = vgui.Create("DButton", frame)
+    kickMemberButton:SetText("Kick Member")
+    kickMemberButton:Dock(BOTTOM)
+    kickMemberButton.DoClick = function()
+        local guildName = getSelectedGuild()
+        local memberSteamID = getSelectedMemberSteamID()
+        if guildName and memberSteamID then
+            net.Start("KickGuildMember")
+            net.WriteString(memberSteamID)
+            net.SendToServer()
+            timer.Simple(1, function() -- Delay to ensure the server processes the kick
+                updateMemberList(guildName)
+            end)
+        end
+    end
+
+    local function canKick()
+        local guildName = getSelectedGuild()
+        if not guildName then return false end
+        local guild = HunterGuildsConfig[guildName]
+        local playerRank = LocalPlayer().hunterGuildRank
+        local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
+        return IsAdmin(LocalPlayer()) or (playerIndex and playerIndex >= 4)
+    end
+
+    kickMemberButton:SetEnabled(canKick())
+
+    memberList.OnRowRightClick = function(_, rowIndex, row)
+        local menu = DermaMenu()
+        menu:AddOption("Promote", function()
+            local guildName = getSelectedGuild()
+            local memberSteamID = getSelectedMemberSteamID()
+            if guildName and memberSteamID then
+                net.Start("PromoteGuildRank")
+                net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
-                    local guildName = getSelectedGuild()
-                    if guildName then
-                        updateMemberList(guildName)
-                    end
+                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+                    updateMemberList(guildName)
                 end)
             end
-        end
+        end)
+        menu:AddOption("Demote", function()
+            local guildName = getSelectedGuild()
+            local memberSteamID = getSelectedMemberSteamID()
+            if guildName and memberSteamID then
+                net.Start("DemoteGuildRank")
+                net.WriteString(memberSteamID)
+                net.SendToServer()
+                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+                    updateMemberList(guildName)
+                end)
+            end
+        end)
+        menu:AddOption("Kick", function()
+            local guildName = getSelectedGuild()
+            local memberSteamID = getSelectedMemberSteamID()
+            if guildName and memberSteamID then
+                net.Start("KickGuildMember")
+                net.WriteString(memberSteamID)
+                net.SendToServer()
+                timer.Simple(1, function() -- Delay to ensure the server processes the kick
+                    updateMemberList(guildName)
+                end)
+            end
+        end)
+        menu:Open()
     end
 end)
 

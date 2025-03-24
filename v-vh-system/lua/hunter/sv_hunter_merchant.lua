@@ -120,6 +120,7 @@ net.Receive("BuyHunterWeapon", function(len, ply)
     net.Send(ply)
 end)
 
+
 hook.Add("PlayerInitialSpawn", "SyncHunterMerchantItems", function(ply)
     net.Start("SyncHunterMerchantItems")
     net.WriteTable(HunterMerchantItems)

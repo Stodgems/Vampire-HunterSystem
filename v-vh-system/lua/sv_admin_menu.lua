@@ -27,8 +27,6 @@ util.AddNetworkString("RequestVampireAbilities")
 util.AddNetworkString("OpenVampireAbilitiesMenu")
 util.AddNetworkString("EditVampireAbility")
 util.AddNetworkString("RemoveVampireAbility")
-util.AddNetworkString("AdminPromoteGuildRank")
-util.AddNetworkString("AdminDemoteGuildRank")
 util.AddNetworkString("RequestGuildMembers")
 util.AddNetworkString("ReceiveGuildMembers")
 
@@ -280,34 +278,6 @@ net.Receive("RemoveVampireAbility", function(len, ply)
     net.Start("SyncVampireAbilities")
     net.WriteTable(VampireAbilities)
     net.Broadcast()
-end)
-
-net.Receive("AdminPromoteGuildRank", function(len, ply)
-    if not IsAdmin(ply) then return end
-    local guildName = net.ReadString()
-    local memberSteamID = net.ReadString()
-    local newRank = net.ReadString()
-    local target = player.GetBySteamID(memberSteamID)
-    if target and target.hunterGuild == guildName then
-        target.hunterGuildRank = newRank
-        hunters[target:SteamID()].guildRank = newRank -- Save the new rank in the hunter data
-        SaveHunterData() -- Save the updated hunter data
-        target:ChatPrint("You have been promoted to " .. newRank .. " in the " .. guildName .. "!")
-    end
-end)
-
-net.Receive("AdminDemoteGuildRank", function(len, ply)
-    if not IsAdmin(ply) then return end
-    local guildName = net.ReadString()
-    local memberSteamID = net.ReadString()
-    local newRank = net.ReadString()
-    local target = player.GetBySteamID(memberSteamID)
-    if target and target.hunterGuild == guildName then
-        target.hunterGuildRank = newRank
-        hunters[target:SteamID()].guildRank = newRank -- Save the new rank in the hunter data
-        SaveHunterData() -- Save the updated hunter data
-        target:ChatPrint("You have been demoted to " .. newRank .. " in the " .. guildName .. "!")
-    end
 end)
 
 net.Receive("RequestGuildMembers", function(len, ply)

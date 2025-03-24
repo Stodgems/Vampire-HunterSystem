@@ -256,60 +256,10 @@ net.Receive("OpenAdminMenu", function()
     local function getSelectedMember()
         local selected = memberList:GetSelectedLine()
         if not selected then return nil end
-        return memberList:GetLine(selected):GetColumnText(1), memberList:GetLine(selected):GetColumnText(2)
+        return memberList:GetLine(selected):GetColumnText(1)
     end
 
-    local promoteRankButton = vgui.Create("DButton", guildAdminPanel)
-    promoteRankButton:SetText("Promote Rank")
-    promoteRankButton:Dock(BOTTOM)
-    promoteRankButton.DoClick = function()
-        local guildName = getSelectedGuild()
-        local memberName, currentRank = getSelectedMember()
-        if guildName and memberName then
-            local rankDropdown = vgui.Create("DComboBox", guildAdminPanel)
-            rankDropdown:SetPos(10, frame:GetTall() - 80) -- Adjust position to be above the buttons
-            rankDropdown:SetSize(200, 20) -- Adjust size as needed
-            for _, rank in ipairs(HunterGuildsConfig[guildName].ranks) do
-                rankDropdown:AddChoice(rank)
-            end
-            rankDropdown.OnSelect = function(_, _, rank)
-                net.Start("AdminPromoteGuildRank")
-                net.WriteString(guildName)
-                net.WriteString(memberName)
-                net.WriteString(rank)
-                net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
-                    updateMemberList(guildName)
-                end)
-            end
-        end
-    end
-
-    local demoteRankButton = vgui.Create("DButton", guildAdminPanel)
-    demoteRankButton:SetText("Demote Rank")
-    demoteRankButton:Dock(BOTTOM)
-    demoteRankButton.DoClick = function()
-        local guildName = getSelectedGuild()
-        local memberName, currentRank = getSelectedMember()
-        if guildName and memberName then
-            local rankDropdown = vgui.Create("DComboBox", guildAdminPanel)
-            rankDropdown:SetPos(10, frame:GetTall() - 50) -- Adjust position to be above the buttons
-            rankDropdown:SetSize(200, 20) -- Adjust size as needed
-            for _, rank in ipairs(HunterGuildsConfig[guildName].ranks) do
-                rankDropdown:AddChoice(rank)
-            end
-            rankDropdown.OnSelect = function(_, _, rank)
-                net.Start("AdminDemoteGuildRank")
-                net.WriteString(guildName)
-                net.WriteString(memberName)
-                net.WriteString(rank)
-                net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
-                    updateMemberList(guildName)
-                end)
-            end
-        end
-    end
+    -- Remove promote and demote buttons
 end)
 
 net.Receive("OpenMerchantItemsMenu", function()

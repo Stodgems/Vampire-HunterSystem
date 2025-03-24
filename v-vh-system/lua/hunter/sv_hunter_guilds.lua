@@ -9,6 +9,11 @@ util.AddNetworkString("PromoteGuildRank")
 util.AddNetworkString("DemoteGuildRank")
 util.AddNetworkString("RequestGuildMembers")
 util.AddNetworkString("ReceiveGuildMembers")
+util.AddNetworkString("KickGuildMember")
+
+local function IsAdmin(ply)
+    return GlobalConfig.AdminUserGroups[ply:GetUserGroup()] or false
+end
 
 net.Receive("JoinHunterGuild", function(len, ply)
     local guildName = net.ReadString()
@@ -23,7 +28,11 @@ net.Receive("PromoteGuildRank", function(len, ply)
     local targetSteamID = net.ReadString()
     local target = player.GetBySteamID(targetSteamID)
     if target then
-        PromoteGuildRank(ply, target)
+        if IsAdmin(ply) then
+            PromoteGuildRank(ply, target, true) -- Allow admin to promote
+        else
+            PromoteGuildRank(ply, target, false)
+        end
     end
 end)
 
@@ -31,7 +40,32 @@ net.Receive("DemoteGuildRank", function(len, ply)
     local targetSteamID = net.ReadString()
     local target = player.GetBySteamID(targetSteamID)
     if target then
-        DemoteGuildRank(ply, target)
+        if IsAdmin(ply) then
+            DemoteGuildRank(ply, target, true) -- Allow admin to demote
+        else
+            DemoteGuildRank(ply, target, false)
+        end
+    end
+end)
+
+net.Receive("KickGuildMember", function(len, ply)
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        local guild = HunterGuildsConfig[ply.hunterGuild]
+        local playerRank = ply.hunterGuildRank
+        local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
+        if IsAdmin(ply) or (playerIndex and playerIndex >= 4) then
+            LeaveGuild(target)
+            if ply.hunterGuild then
+                target:ChatPrint("You have been kicked from the " .. ply.hunterGuild .. " guild.")
+            else
+                target:ChatPrint("You have been kicked from the guild.")
+            end
+            hunters[target:SteamID()].guild = nil -- Update the database
+            hunters[target:SteamID()].guildRank = nil -- Update the database
+            SaveHunterData() -- Save the updated hunter data
+        end
     end
 end)
 

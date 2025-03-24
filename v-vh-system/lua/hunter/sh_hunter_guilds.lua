@@ -31,6 +31,9 @@ function LeaveGuild(ply)
     ply:SetNWFloat("GuildOfStrengthMeleeDamage", 1.0) -- Reset melee damage to default
     timer.Remove("GuildOfLightRegen_" .. ply:SteamID()) -- Remove health regeneration timer
     ply:ChatPrint("You have left your guild.")
+    hunters[ply:SteamID()].guild = nil -- Update the database
+    hunters[ply:SteamID()].guildRank = nil -- Update the database
+    SaveHunterData() -- Save the updated hunter data
 end
 
 // Function to get the player's guild
@@ -44,7 +47,7 @@ function GetGuildRank(ply)
 end
 
 // Function to promote a player within their guild
-function PromoteGuildRank(ply, target)
+function PromoteGuildRank(ply, target, isAdmin)
     if not IsHunter(ply) or not ply.hunterGuild then return end
     if not IsHunter(target) or not target.hunterGuild or target.hunterGuild ~= ply.hunterGuild then return end
 
@@ -55,14 +58,18 @@ function PromoteGuildRank(ply, target)
     local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
     local targetIndex = table.KeyFromValue(guild.ranks, targetRank)
 
-    if playerIndex and targetIndex and playerIndex >= 4 and targetIndex < playerIndex then
-        target.hunterGuildRank = guild.ranks[targetIndex + 1]
-        target:ChatPrint("You have been promoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
+    if isAdmin or (playerIndex and targetIndex and playerIndex >= 4 and targetIndex < playerIndex) then
+        if targetIndex < #guild.ranks then -- Ensure the target is not already at the highest rank
+            target.hunterGuildRank = guild.ranks[targetIndex + 1]
+            hunters[target:SteamID()].guildRank = guild.ranks[targetIndex + 1] -- Update the database
+            SaveHunterData() -- Save the updated hunter data
+            target:ChatPrint("You have been promoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
+        end
     end
 end
 
 // Function to demote a player within their guild
-function DemoteGuildRank(ply, target)
+function DemoteGuildRank(ply, target, isAdmin)
     if not IsHunter(ply) or not ply.hunterGuild then return end
     if not IsHunter(target) or not target.hunterGuild or target.hunterGuild ~= ply.hunterGuild then return end
 
@@ -73,8 +80,13 @@ function DemoteGuildRank(ply, target)
     local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
     local targetIndex = table.KeyFromValue(guild.ranks, targetRank)
 
-    if playerIndex and targetIndex and playerIndex >= 4 and targetIndex > 1 then
-        target.hunterGuildRank = guild.ranks[targetIndex - 1]
-        target:ChatPrint("You have been demoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
+    if isAdmin or (playerIndex and targetIndex and playerIndex >= 4 and targetIndex > 1) then
+        if targetIndex > 1 then -- Ensure the target is not already at the lowest rank
+            target.hunterGuildRank = guild.ranks[targetIndex - 1]
+            hunters[target:SteamID()].guildRank = guild.ranks[targetIndex - 1] -- Update the database
+            SaveHunterData() -- Save the updated hunter data
+            target:ChatPrint("You have been demoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
+        end
     end
 end
+

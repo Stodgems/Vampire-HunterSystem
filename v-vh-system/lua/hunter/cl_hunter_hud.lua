@@ -3,7 +3,8 @@
 local hunterData = {
     experience = 0,
     tier = "Novice",
-    hearts = 0
+    hearts = 0,
+    guild = "None"
 }
 
 local newTierMessage = ""
@@ -13,6 +14,14 @@ net.Receive("UpdateHunterHUD", function()
     hunterData.experience = net.ReadInt(32)
     hunterData.tier = net.ReadString()
     hunterData.hearts = net.ReadInt(32)
+    hunterData.guild = net.ReadString()
+
+    -- Debug print to check the guild text
+    print("[DEBUG] Received guild text:", hunterData.guild)
+end)
+
+net.Receive("SyncHunterGuild", function()
+    hunterData.guild = net.ReadString() or "None" -- Update guild data
 end)
 
 net.Receive("SyncHunterData", function()
@@ -49,22 +58,22 @@ local function DrawHunterHUD()
     local nextThreshold = GetNextTierThreshold(tier)
     local progress = math.Clamp(experience / nextThreshold, 0, 1)
 
-    -- Draw background
-    draw.RoundedBox(10, 10, ScrH() - 260, 250, 130, Color(0, 0, 0, 150))
+    -- Reduce the height of the background box
+    draw.RoundedBox(10, 10, ScrH() - 270, 250, 140, Color(0, 0, 0, 150))
 
     -- Draw experience amount
-    draw.SimpleText("Experience: " .. experience, "Trebuchet24", 20, ScrH() - 250, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Experience: " .. tostring(experience), "Trebuchet24", 20, ScrH() - 260, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw hunter tier
-    draw.SimpleText("Tier: " .. tier, "Trebuchet24", 20, ScrH() - 220, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Tier: " .. tostring(tier), "Trebuchet24", 20, ScrH() - 230, Color(0, 255, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw vampire hearts
-    draw.SimpleText("Vampire Hearts: " .. hearts, "Trebuchet24", 20, ScrH() - 190, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+    draw.SimpleText("Vampire Hearts: " .. tostring(hearts), "Trebuchet24", 20, ScrH() - 200, Color(255, 0, 0, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
     -- Draw experience bar
     local experienceBarWidth = progress * 200
-    draw.RoundedBox(5, 20, ScrH() - 160, 200, 20, Color(0, 100, 0, 150))
-    draw.RoundedBox(5, 20, ScrH() - 160, experienceBarWidth, 20, Color(0, 255, 0, 255))
+    draw.RoundedBox(5, 20, ScrH() - 170, 200, 20, Color(0, 100, 0, 150))
+    draw.RoundedBox(5, 20, ScrH() - 170, experienceBarWidth, 20, Color(0, 255, 0, 255))
 
     -- Draw new tier message
     if newTierMessageTime > CurTime() then

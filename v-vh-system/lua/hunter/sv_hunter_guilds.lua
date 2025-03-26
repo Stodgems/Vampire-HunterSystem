@@ -1,6 +1,7 @@
 -- Hunter Guilds Server Logic
 
 include("hunter/sh_hunter_guilds_config.lua") -- Include the Hunter Guilds config
+include("hunter/sh_hunter_guilds.lua") -- Ensure the shared guild logic is included
 
 util.AddNetworkString("OpenHunterGuildsMenu")
 util.AddNetworkString("JoinHunterGuild")
@@ -10,14 +11,44 @@ util.AddNetworkString("DemoteGuildRank")
 util.AddNetworkString("RequestGuildMembers")
 util.AddNetworkString("ReceiveGuildMembers")
 util.AddNetworkString("KickGuildMember")
+util.AddNetworkString("SyncHunterGuild")
 
 local function IsAdmin(ply)
     return GlobalConfig.AdminUserGroups[ply:GetUserGroup()] or false
 end
 
+local function SyncPlayerGuildData(ply)
+    if IsHunter(ply) and ply.hunterGuild then
+        local guild = HunterGuildsConfig[ply.hunterGuild]
+        ply.hunterGuildRank = ply.hunterGuildRank or "Rookie"
+        if IsAdmin(ply) then
+            ply:ChatPrint("As an admin, you have full control over guild ranks.")
+        end
+    end
+end
+
+local function UpdateGuildHUD(ply, guildName)
+    net.Start("SyncHunterGuild")
+    net.WriteString(guildName or "None")
+    net.Send(ply)
+end
+
+function JoinGuild(ply, guildName)
+    -- ...existing code...
+    UpdateGuildHUD(ply, guildName) -- Update HUD
+end
+
+function LeaveGuild(ply)
+    -- ...existing code...
+    UpdateGuildHUD(ply, nil) -- Update HUD
+end
+
 net.Receive("JoinHunterGuild", function(len, ply)
     local guildName = net.ReadString()
     JoinGuild(ply, guildName)
+
+    -- Sync the player's guild rank and admin status immediately
+    SyncPlayerGuildData(ply)
 end)
 
 net.Receive("LeaveHunterGuild", function(len, ply)
@@ -27,11 +58,12 @@ end)
 net.Receive("PromoteGuildRank", function(len, ply)
     local targetSteamID = net.ReadString()
     local target = player.GetBySteamID(targetSteamID)
+
     if target then
         if IsAdmin(ply) then
-            PromoteGuildRank(ply, target, true) -- Allow admin to promote
+            _G.PromoteGuildRank(ply, target, true) -- Use the globally defined function
         else
-            PromoteGuildRank(ply, target, false)
+            _G.PromoteGuildRank(ply, target, false)
         end
     end
 end)
@@ -39,12 +71,18 @@ end)
 net.Receive("DemoteGuildRank", function(len, ply)
     local targetSteamID = net.ReadString()
     local target = player.GetBySteamID(targetSteamID)
+    print("[DEBUG] DemoteGuildRank called by " .. ply:Nick() .. " for target " .. (target and target:Nick() or "nil"))
+
     if target then
         if IsAdmin(ply) then
+            print("[DEBUG] " .. ply:Nick() .. " is an admin. Proceeding with demotion.")
             DemoteGuildRank(ply, target, true) -- Allow admin to demote
         else
+            print("[DEBUG] " .. ply:Nick() .. " is not an admin. Checking rank permissions.")
             DemoteGuildRank(ply, target, false)
         end
+    else
+        print("[DEBUG] Target player not found.")
     end
 end)
 
@@ -62,9 +100,11 @@ net.Receive("KickGuildMember", function(len, ply)
             else
                 target:ChatPrint("You have been kicked from the guild.")
             end
-            hunters[target:SteamID()].guild = nil -- Update the database
-            hunters[target:SteamID()].guildRank = nil -- Update the database
-            SaveHunterData() -- Save the updated hunter data
+
+            -- Reset guild data in the database
+            hunters[target:SteamID()].guild = nil
+            hunters[target:SteamID()].guildRank = nil
+            SaveHunterData()
         end
     end
 end)
@@ -93,6 +133,7 @@ hook.Add("PlayerInitialSpawn", "SyncHunterGuilds", function(ply)
         local guild = HunterGuildsConfig[ply.hunterGuild]
         ply:SetHealth(guild.benefits.health)
         ply:SetRunSpeed(guild.benefits.speed)
+        SyncPlayerGuildData(ply) -- Ensure guild data is synced on spawn
     end
 end)
 
@@ -104,8 +145,21 @@ hook.Add("PlayerSpawn", "SetHunterGuildOnSpawn", function(ply)
             if guild then
                 ply.hunterGuild = hunterData.guild
                 ply.hunterGuildRank = hunterData.guildRank or "Rookie"
+
+                -- Apply tier perks first
+                UpdateHunterStats(ply)
+
+                -- Apply guild-specific perks
                 ply:SetHealth(guild.benefits.health)
+                ply:SetArmor(guild.benefits.armor)
                 ply:SetRunSpeed(guild.benefits.speed)
+
+                -- Apply custom perks
+                if guild.customPerks then
+                    guild.customPerks(ply)
+                end
+
+                SyncPlayerGuildData(ply) -- Ensure guild data is synced on spawn
             end
         end
     end
@@ -113,6 +167,10 @@ end)
 
 hook.Add("PlayerSay", "OpenHunterGuildsMenuCommand", function(ply, text)
     if string.lower(text) == "!hguild" then
+        if not IsHunter(ply) then
+            ply:ChatPrint("Only hunters can access the guild menu.")
+            return ""
+        end
         net.Start("OpenHunterGuildsMenu")
         net.Send(ply) -- Ensure the net message is sent to the player
         return ""

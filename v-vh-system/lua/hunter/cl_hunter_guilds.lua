@@ -47,11 +47,12 @@ net.Receive("OpenHunterGuildsMenu", function()
                 table.insert(members, {name = member.name, rank = member.rank})
             end
 
+            -- Sort members to display the highest ranks at the top
             table.sort(members, function(a, b)
                 local guild = HunterGuildsConfig[guildName]
                 local aRankIndex = table.KeyFromValue(guild.ranks, a.rank) or 0
                 local bRankIndex = table.KeyFromValue(guild.ranks, b.rank) or 0
-                return aRankIndex < bRankIndex -- Change comparison to ensure higher ranks are at the top
+                return aRankIndex > bRankIndex -- Reverse comparison for highest ranks at the top
             end)
 
             for _, member in ipairs(members) do
@@ -176,8 +177,6 @@ net.Receive("OpenHunterGuildsMenu", function()
         local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
         return IsAdmin(LocalPlayer()) or (playerIndex and playerIndex >= 4)
     end
-
-    kickMemberButton:SetEnabled(canKick())
 
     memberList.OnRowRightClick = function(_, rowIndex, row)
         local menu = DermaMenu()

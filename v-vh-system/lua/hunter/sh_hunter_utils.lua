@@ -112,6 +112,7 @@ function UpdateHunterStats(ply)
     local tier = hunter.tier
     local config = HunterConfig.Tiers[tier]
 
+    -- Apply tier perks
     ply:SetHealth(config.health)
     ply:SetRunSpeed(config.speed)
 
@@ -123,6 +124,19 @@ function UpdateHunterStats(ply)
             ply:SetModel(jobModel[1])
         else
             ply:SetModel(jobModel)
+        end
+    end
+
+    -- Apply guild perks if the player is in a guild
+    if ply.hunterGuild and HunterGuildsConfig[ply.hunterGuild] then
+        local guild = HunterGuildsConfig[ply.hunterGuild]
+        ply:SetHealth(guild.benefits.health)
+        ply:SetArmor(guild.benefits.armor)
+        ply:SetRunSpeed(guild.benefits.speed)
+
+        -- Apply custom perks
+        if guild.customPerks then
+            guild.customPerks(ply)
         end
     end
 
@@ -215,6 +229,7 @@ function LeaveGuild(ply)
     ply:ChatPrint("You have left your guild.")
 end
 
+--[[
 -- Function to promote a player within their guild
 function PromoteGuildRank(ply, target)
     if not IsHunter(ply) or not ply.hunterGuild then return end
@@ -234,7 +249,9 @@ function PromoteGuildRank(ply, target)
         target:ChatPrint("You have been promoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
     end
 end
+--]]
 
+--[[
 -- Function to demote a player within their guild
 function DemoteGuildRank(ply, target)
     if not IsHunter(ply) or not ply.hunterGuild then return end
@@ -254,6 +271,7 @@ function DemoteGuildRank(ply, target)
         target:ChatPrint("You have been demoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
     end
 end
+--]]
 
 hook.Add("PlayerInitialSpawn", "LoadHunterData", function(ply)
     LoadHunterData(ply)

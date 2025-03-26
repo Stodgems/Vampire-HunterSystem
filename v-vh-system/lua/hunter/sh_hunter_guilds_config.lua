@@ -5,7 +5,8 @@ HunterGuildsConfig = {
         description = "A guild focused on stealth and assassination.",
         benefits = {
             speed = 350,
-            health = 150
+            health = 150,
+            armor = 50 -- Extra armor benefit
         },
         ranks = {
             "Rookie",
@@ -24,7 +25,8 @@ HunterGuildsConfig = {
         description = "A guild focused on healing and support.",
         benefits = {
             speed = 300,
-            health = 200
+            health = 200,
+            armor = 75 -- Extra armor benefit
         },
         ranks = {
             "Rookie",
@@ -47,7 +49,8 @@ HunterGuildsConfig = {
         description = "A guild focused on brute strength and combat.",
         benefits = {
             speed = 250,
-            health = 250
+            health = 250,
+            armor = 100 -- Extra armor benefit
         },
         ranks = {
             "Rookie",

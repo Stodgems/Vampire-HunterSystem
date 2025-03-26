@@ -18,11 +18,16 @@ end
 -- Function to save vampire data to the SQLite database
 function SaveVampireData()
     for steamID, data in pairs(vampires) do
-        local steamIDEscaped = sql.SQLStr(steamID)
-        local blood = tonumber(data.blood)
-        local tierEscaped = sql.SQLStr(data.tier)
-        local medallions = tonumber(data.medallions or 0)
-        sql.Query(string.format("REPLACE INTO vampire_data (steamID, blood, tier, medallions) VALUES (%s, %d, %s, %d)", steamIDEscaped, blood, tierEscaped, medallions))
+        local query = string.format(
+            "REPLACE INTO vampire_data (steamID, blood, tier, medallions, coven, covenRank) VALUES ('%s', %d, '%s', %d, '%s', '%s')",
+            steamID,
+            data.blood or 0,
+            data.tier or "Thrall",
+            data.medallions or 0,
+            data.coven or "",
+            data.covenRank or ""
+        )
+        sql.Query(query)
     end
 end
 

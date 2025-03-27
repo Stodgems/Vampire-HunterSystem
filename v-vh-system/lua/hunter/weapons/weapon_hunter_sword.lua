@@ -3,7 +3,7 @@
 SWEP = {}
 SWEP.Base = "weapon_base"
 SWEP.PrintName = "Hunter Sword"
-SWEP.Author = "Your Name"
+SWEP.Author = "Charlie"
 SWEP.Instructions = "Left click to slash."
 SWEP.Category = "Hunter System"
 SWEP.ClassName = "weapon_hunter_sword"
@@ -35,25 +35,32 @@ function SWEP:Initialize()
 end
 
 function SWEP:PrimaryAttack()
-    self:SetNextPrimaryFire(CurTime() + 1)
+    self:SetNextPrimaryFire(CurTime() + 0.8)
 
-    local tr = self.Owner:GetEyeTrace()
+    local ply = self.Owner
+    if not IsValid(ply) then return end
+
+    ply:SetAnimation(PLAYER_ATTACK1) -- Play attack animation
+    self:SendWeaponAnim(ACT_VM_HITCENTER) -- Play weapon animation
+
+    local tr = ply:GetEyeTrace()
     if not tr.Hit then return end
 
-    local target = tr.Entity
-    if not IsValid(target) or not target:IsPlayer() then return end
-
     if SERVER then
-        local dmg = DamageInfo()
-        dmg:SetAttacker(self.Owner)
-        dmg:SetInflictor(self)
-        dmg:SetDamageType(DMG_SLASH)
-        dmg:SetDamage(25) -- Consistent damage for a normal sword
+        local target = tr.Entity
+        if IsValid(target) and tr.HitPos:Distance(ply:GetPos()) <= 75 then
+            local dmg = DamageInfo()
+            dmg:SetAttacker(ply)
+            dmg:SetInflictor(self)
+            dmg:SetDamageType(DMG_SLASH)
+            dmg:SetDamage(25) -- Consistent damage for the sword
 
-        target:TakeDamageInfo(dmg)
+            target:TakeDamageInfo(dmg)
+            ply:EmitSound("npc/fast_zombie/claw_strike2.wav")
+        else
+            ply:EmitSound("npc/fast_zombie/claw_miss1.wav")
+        end
     end
-
-    self:EmitSound("Weapon_Crowbar.Single")
 end
 
 function SWEP:SecondaryAttack()

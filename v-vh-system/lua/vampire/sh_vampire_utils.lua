@@ -102,6 +102,7 @@ end
 
 -- Function to check if a player is a vampire
 function IsVampire(ply)
+    if not IsValid(ply) or not ply:IsPlayer() then return false end -- Ensure the input is a valid player
     return vampires[ply:SteamID()] ~= nil
 end
 

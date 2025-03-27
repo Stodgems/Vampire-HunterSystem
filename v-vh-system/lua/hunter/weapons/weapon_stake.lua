@@ -3,7 +3,7 @@
 SWEP = {}
 SWEP.Base = "weapon_base"
 SWEP.PrintName = "Wooden Stake"
-SWEP.Author = "Your Name"
+SWEP.Author = "Charlie"
 SWEP.Instructions = "Left click to stab."
 SWEP.Category = "Hunter System"
 SWEP.ClassName = "weapon_stake"
@@ -35,30 +35,37 @@ function SWEP:Initialize()
 end
 
 function SWEP:PrimaryAttack()
-    self:SetNextPrimaryFire(CurTime() + 1)
+    self:SetNextPrimaryFire(CurTime() + 0.8)
 
-    local tr = self.Owner:GetEyeTrace()
+    local ply = self.Owner
+    if not IsValid(ply) then return end
+
+    ply:SetAnimation(PLAYER_ATTACK1) -- Play attack animation
+    self:SendWeaponAnim(ACT_VM_HITCENTER) -- Play weapon animation
+
+    local tr = ply:GetEyeTrace()
     if not tr.Hit then return end
 
-    local target = tr.Entity
-    if not IsValid(target) or not target:IsPlayer() then return end
-
     if SERVER then
-        local dmg = DamageInfo()
-        dmg:SetAttacker(self.Owner)
-        dmg:SetInflictor(self)
-        dmg:SetDamageType(DMG_SLASH)
+        local target = tr.Entity
+        if IsValid(target) and tr.HitPos:Distance(ply:GetPos()) <= 75 then
+            local dmg = DamageInfo()
+            dmg:SetAttacker(ply)
+            dmg:SetInflictor(self)
+            dmg:SetDamageType(DMG_SLASH)
 
-        if IsVampire(target) then
-            dmg:SetDamage(50)
+            if IsVampire(target) then
+                dmg:SetDamage(50) -- Higher damage for vampires
+            else
+                dmg:SetDamage(10) -- Lower damage for others
+            end
+
+            target:TakeDamageInfo(dmg)
+            ply:EmitSound("npc/fast_zombie/claw_strike1.wav")
         else
-            dmg:SetDamage(10)
+            ply:EmitSound("npc/fast_zombie/claw_miss1.wav")
         end
-
-        target:TakeDamageInfo(dmg)
     end
-
-    self:EmitSound("Weapon_Crowbar.Single")
 end
 
 function SWEP:SecondaryAttack()

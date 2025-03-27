@@ -5,7 +5,7 @@ AddCSLuaFile()
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Admin Declasser"
-ENT.Author = "Your Name"
+ENT.Author = "Charlie"
 ENT.Category = "Admin Tools"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true

@@ -5,7 +5,7 @@ AddCSLuaFile()
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Hunter Merchant"
-ENT.Author = "Your Name"
+ENT.Author = "Charlie"
 ENT.Category = "Hunter System"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true

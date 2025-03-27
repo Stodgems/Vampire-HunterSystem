@@ -3,7 +3,7 @@
 SWEP = {}
 SWEP.Base = "weapon_base"
 SWEP.PrintName = "Vampire Claws and Leap"
-SWEP.Author = "Your Name"
+SWEP.Author = "Charlie"
 SWEP.Instructions = "Left click to attack with claws, right click to leap and deal AOE damage on landing."
 SWEP.Category = "Vampire System"
 SWEP.ClassName = "weapon_vampire_claws_leap"
@@ -77,22 +77,6 @@ function SWEP:Think()
 
         if self.LeapInProgress and ply:IsOnGround() then
             self.LeapInProgress = false
-
-            local effectData = EffectData()
-            effectData:SetOrigin(ply:GetPos())
-
-            local dmg = DamageInfo()
-            dmg:SetAttacker(ply)
-            dmg:SetInflictor(self)
-            dmg:SetDamageType(DMG_BLAST)
-            dmg:SetDamage(50)
-
-            for _, ent in ipairs(ents.FindInSphere(ply:GetPos(), 200)) do
-                if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) and ent ~= ply then
-                    ent:TakeDamageInfo(dmg)
-                end
-            end
-
         end
     end
 end

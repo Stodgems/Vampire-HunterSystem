@@ -3,7 +3,7 @@
 SWEP = {}
 SWEP.Base = "weapon_base"
 SWEP.PrintName = "Vampire Leap"
-SWEP.Author = "Your Name"
+SWEP.Author = "Charlie"
 SWEP.Instructions = "Left click to leap and deal AOE damage on landing."
 SWEP.Category = "Vampire System"
 SWEP.ClassName = "weapon_vampire_leap"

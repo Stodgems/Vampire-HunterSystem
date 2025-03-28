@@ -1,9 +1,8 @@
 -- Hunter Utility Functions
 
 include("hunter/sh_hunter_config.lua")
-include("hunter/sh_hunter_guilds.lua") -- Include the Hunter Guilds logic
+include("hunter/sh_hunter_guilds.lua")
 
--- Initialize the hunters table
 if SERVER then
     hunters = hunters or {}
     util.AddNetworkString("SyncHunterData")
@@ -16,7 +15,6 @@ else
     end)
 end
 
--- Function to save hunter data to the SQLite database
 function SaveHunterData()
     for steamID, data in pairs(hunters) do
         local query = string.format("REPLACE INTO hunter_data (steamID, experience, tier, hearts, weapons, guild, guildRank) VALUES ('%s', %d, '%s', %d, '%s', '%s', '%s')", steamID, data.experience, data.tier, data.hearts or 0, table.concat(data.weapons or {}, ","), data.guild or "", data.guildRank or "")
@@ -24,14 +22,12 @@ function SaveHunterData()
     end
 end
 
--- Function to remove hunter data from the SQLite database
 local function RemoveHunterData(steamID)
     local query = string.format("DELETE FROM hunter_data WHERE steamID = '%s'", steamID)
     sql.Query(query)
     sql.Query(string.format("DELETE FROM purchased_items WHERE steamID = %s", sql.SQLStr(steamID))) -- Remove purchased items
 end
 
--- Function to load hunter data from the SQLite database
 local function LoadHunterData()
     if not sql.TableExists("hunter_data") then
         sql.Query("CREATE TABLE hunter_data (steamID TEXT PRIMARY KEY, experience INTEGER, tier TEXT, hearts INTEGER, weapons TEXT, guild TEXT, guildRank TEXT)")
@@ -45,7 +41,6 @@ local function LoadHunterData()
     end
 end
 
--- Function to sync hunter data with clients
 function SyncHunterData()
     if SERVER then
         if timer.Exists("SyncHunterDataTimer") then return end
@@ -57,12 +52,10 @@ function SyncHunterData()
     end
 end
 
--- Function to give hunter weapons
 local function GiveHunterWeapons(ply)
     ply:Give("weapon_stake")
 end
 
--- Function to turn a player into a hunter
 function MakeHunter(ply)
     if not ply:IsPlayer() then return end
     if IsVampire(ply) then
@@ -79,32 +72,28 @@ function MakeHunter(ply)
     end
 end
 
--- Function to remove a player from being a hunter
 function RemoveHunter(ply)
     if not ply:IsPlayer() then return end
     hunters[ply:SteamID()] = nil
     RemoveHunterData(ply:SteamID())
     ResetHunterPerks(ply)
-    LeaveGuild(ply) -- Ensure the player leaves their guild
+    LeaveGuild(ply)
     SyncHunterData()
     ply:ChatPrint("You have been removed from the hunter system!")
     SaveHunterData()
     UpdateHunterHUD(ply)
 end
 
--- Function to reset all perks for a player
 function ResetHunterPerks(ply)
-    ply:SetRunSpeed(250) -- Reset to default speed
-    ply:SetHealth(100) -- Reset to default health
-    ply:ConCommand("pp_mat_overlay ''") -- Reset night vision
+    ply:SetRunSpeed(250)
+    ply:SetHealth(100)
+    ply:ConCommand("pp_mat_overlay ''")
 end
 
--- Function to check if a player is a hunter
 function IsHunter(ply)
     return hunters[ply:SteamID()] ~= nil
 end
 
--- Function to update hunter stats based on their tier
 function UpdateHunterStats(ply)
     local hunter = hunters[ply:SteamID()]
     if not hunter then return end
@@ -112,7 +101,6 @@ function UpdateHunterStats(ply)
     local tier = hunter.tier
     local config = HunterConfig.Tiers[tier]
 
-    -- Apply tier perks
     ply:SetHealth(config.health)
     ply:SetRunSpeed(config.speed)
 
@@ -127,14 +115,12 @@ function UpdateHunterStats(ply)
         end
     end
 
-    -- Apply guild perks if the player is in a guild
     if ply.hunterGuild and HunterGuildsConfig[ply.hunterGuild] then
         local guild = HunterGuildsConfig[ply.hunterGuild]
         ply:SetHealth(guild.benefits.health)
         ply:SetArmor(guild.benefits.armor)
         ply:SetRunSpeed(guild.benefits.speed)
 
-        -- Apply custom perks
         if guild.customPerks then
             guild.customPerks(ply)
         end
@@ -145,13 +131,11 @@ function UpdateHunterStats(ply)
     end
 end
 
--- Function to add experience to a hunter
 function AddExperience(ply, amount)
     if not IsHunter(ply) then return end
     local hunter = hunters[ply:SteamID()]
     hunter.experience = hunter.experience + amount
 
-    -- Update tier based on experience level
     local newTier = hunter.tier
     for tier, config in SortedPairsByMemberValue(HunterConfig.Tiers, "threshold", true) do
         if hunter.experience >= config.threshold then
@@ -175,7 +159,6 @@ function AddExperience(ply, amount)
     end
 end
 
--- Function to add a vampire heart to a hunter
 function AddVampireHeart(ply)
     if not IsHunter(ply) then return end
     local hunter = hunters[ply:SteamID()]
@@ -187,7 +170,6 @@ function AddVampireHeart(ply)
     end
 end
 
--- Function to update the hunter HUD
 if SERVER then
     function UpdateHunterHUD(ply)
         if not IsHunter(ply) then return end
@@ -200,78 +182,32 @@ if SERVER then
     end
 end
 
--- Function to join a guild
 function JoinGuild(ply, guildName)
     if not IsHunter(ply) then return end
     if not HunterGuildsConfig[guildName] then return end
 
     local guild = HunterGuildsConfig[guildName]
     ply.hunterGuild = guildName
-    ply.hunterGuildRank = "Rookie" -- Set initial rank
-    hunters[ply:SteamID()].guild = guildName -- Save the guild in the hunter data
-    hunters[ply:SteamID()].guildRank = "Rookie" -- Save the guild rank in the hunter data
-    SaveHunterData() -- Save the updated hunter data
+    ply.hunterGuildRank = "Rookie"
+    hunters[ply:SteamID()].guild = guildName
+    hunters[ply:SteamID()].guildRank = "Rookie"
+    SaveHunterData()
     ply:SetHealth(guild.benefits.health)
     ply:SetRunSpeed(guild.benefits.speed)
     ply:ChatPrint("You have joined the " .. guildName .. " as a Rookie!")
 end
 
--- Function to leave a guild
 function LeaveGuild(ply)
     if not IsHunter(ply) then return end
     ply.hunterGuild = nil
     ply.hunterGuildRank = nil
-    hunters[ply:SteamID()].guild = "" -- Remove the guild from the hunter data
-    hunters[ply:SteamID()].guildRank = "" -- Remove the guild rank from the hunter data
-    SaveHunterData() -- Save the updated hunter data
+    hunters[ply:SteamID()].guild = ""
+    hunters[ply:SteamID()].guildRank = ""
+    SaveHunterData()
     ply:SetHealth(100)
     ply:SetRunSpeed(250)
     ply:ChatPrint("You have left your guild.")
 end
-
---[[
--- Function to promote a player within their guild
-function PromoteGuildRank(ply, target)
-    if not IsHunter(ply) or not ply.hunterGuild then return end
-    if not IsHunter(target) or not target.hunterGuild or target.hunterGuild ~= ply.hunterGuild then return end
-
-    local guild = HunterGuildsConfig[ply.hunterGuild]
-    local playerRank = ply.hunterGuildRank
-    local targetRank = target.hunterGuildRank
-
-    local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
-    local targetIndex = table.KeyFromValue(guild.ranks, targetRank)
-
-    if playerIndex and targetIndex and playerIndex >= 4 and targetIndex < playerIndex then
-        target.hunterGuildRank = guild.ranks[targetIndex + 1]
-        hunters[target:SteamID()].guildRank = guild.ranks[targetIndex + 1] -- Save the new rank in the hunter data
-        SaveHunterData() -- Save the updated hunter data
-        target:ChatPrint("You have been promoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
-    end
-end
---]]
-
---[[
--- Function to demote a player within their guild
-function DemoteGuildRank(ply, target)
-    if not IsHunter(ply) or not ply.hunterGuild then return end
-    if not IsHunter(target) or not target.hunterGuild or target.hunterGuild ~= ply.hunterGuild then return end
-
-    local guild = HunterGuildsConfig[ply.hunterGuild]
-    local playerRank = ply.hunterGuildRank
-    local targetRank = target.hunterGuildRank
-
-    local playerIndex = table.KeyFromValue(guild.ranks, playerRank)
-    local targetIndex = table.KeyFromValue(guild.ranks, targetRank)
-
-    if playerIndex and targetIndex and playerIndex >= 4 and targetIndex > 1 then
-        target.hunterGuildRank = guild.ranks[targetIndex - 1]
-        hunters[target:SteamID()].guildRank = guild.ranks[targetIndex - 1] -- Save the new rank in the hunter data
-        SaveHunterData() -- Save the updated hunter data
-        target:ChatPrint("You have been demoted to " .. target.hunterGuildRank .. " in the " .. target.hunterGuild .. "!")
-    end
-end
---]]
 
 hook.Add("PlayerInitialSpawn", "LoadHunterData", function(ply)
     LoadHunterData(ply)
@@ -281,20 +217,16 @@ hook.Add("PlayerDisconnected", "SaveHunterData", function(ply)
     SaveHunterData(ply)
 end)
 
--- Load hunter data when the server starts
 hook.Add("Initialize", "LoadHunterData", LoadHunterData)
 
--- Save hunter data when the server shuts down
 hook.Add("ShutDown", "SaveHunterData", SaveHunterData)
 
-// Sync hunter data with clients when they join
 hook.Add("PlayerInitialSpawn", "SyncHunterData", function(ply)
     net.Start("SyncHunterData")
     net.WriteTable(hunters)
     net.Send(ply)
 end)
 
-// Give hunter weapons to hunters when they spawn
 hook.Add("PlayerSpawn", "HunterPlayerSpawn", function(ply)
     if IsHunter(ply) then
         UpdateHunterStats(ply)
@@ -307,7 +239,6 @@ hook.Add("PlayerSpawn", "HunterPlayerSpawn", function(ply)
     end
 end)
 
-// Give hunter weapons to hunters when they change job
 hook.Add("OnPlayerChangedTeam", "HunterPlayerChangedTeam", function(ply, oldTeam, newTeam)
     if IsHunter(ply) then
         timer.Simple(0.1, function()
@@ -318,7 +249,6 @@ hook.Add("OnPlayerChangedTeam", "HunterPlayerChangedTeam", function(ply, oldTeam
     end
 end)
 
-// Update hunter model if they reach the threshold when they die
 hook.Add("PlayerDeath", "HunterPlayerDeath", function(ply)
     if IsHunter(ply) then
         timer.Simple(0.1, function()
@@ -329,7 +259,6 @@ hook.Add("PlayerDeath", "HunterPlayerDeath", function(ply)
     end
 end)
 
-// Add experience and a vampire heart to hunter when they kill a vampire
 hook.Add("PlayerDeath", "HunterKillsVampire", function(victim, inflictor, attacker)
     if IsHunter(attacker) and IsVampire(victim) then
         AddExperience(attacker, 1000)

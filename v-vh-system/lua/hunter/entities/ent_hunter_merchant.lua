@@ -30,7 +30,7 @@ function ENT:Use(activator, caller)
     end
 
     if self.NextUse and self.NextUse > CurTime() then return end
-    self.NextUse = CurTime() + 1 -- 1 second cooldown
+    self.NextUse = CurTime() + 1
 
     net.Start("OpenHunterMerchantMenu")
     net.WriteTable(HunterMerchantItems)

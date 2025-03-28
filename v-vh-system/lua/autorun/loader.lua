@@ -59,11 +59,10 @@ else
 	end
 end
 
--- Load the global config
 include("config/sh_global_config.lua")
 AddCSLuaFile("config/sh_global_config.lua")
 
--- Load the vampire subfolder
+-- Load the vampire and hunter subfolders
 if SERVER then
 	V_VH.RecursiveServerLoader("vampire/")
 	V_VH.RecursiveServerLoader("vampire/weapons/")

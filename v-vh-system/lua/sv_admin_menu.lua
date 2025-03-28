@@ -1,9 +1,9 @@
 -- Admin Menu Logic
 
 include("hunter/sv_hunter_merchant.lua")
-include("hunter/sh_hunter_utils.lua") -- Ensure this file is included to access SaveHunterWeapons
-include("vampire/sv_vampire_abilities.lua") -- Include the vampire abilities logic
-include("vampire/sh_vampire_utils.lua") -- Ensure this file is included to access SyncVampireData
+include("hunter/sh_hunter_utils.lua")
+include("vampire/sv_vampire_abilities.lua")
+include("vampire/sh_vampire_utils.lua")
 
 util.AddNetworkString("OpenAdminMenu")
 util.AddNetworkString("AdminMakeVampire")
@@ -30,7 +30,6 @@ util.AddNetworkString("RemoveVampireAbility")
 util.AddNetworkString("RequestGuildMembers")
 util.AddNetworkString("ReceiveGuildMembers")
 
--- Function to check if a player is an admin
 local function IsAdmin(ply)
     local isAdmin = GlobalConfig.AdminUserGroups[ply:GetUserGroup()] or false
     return isAdmin

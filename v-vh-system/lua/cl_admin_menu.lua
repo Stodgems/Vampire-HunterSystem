@@ -1,10 +1,10 @@
 -- Admin Menu
 
 net.Receive("OpenAdminMenu", function()
-    print("[Vampire System] Opening Admin Menu") -- Debug print to verify the menu is opening
+    print("[Vampire System] Opening Admin Menu")
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Admin Menu")
-    frame:SetSize(700, 600) -- Increase the width to accommodate new columns
+    frame:SetSize(700, 600)
     frame:Center()
     frame:MakePopup()
 
@@ -177,7 +177,6 @@ net.Receive("OpenAdminMenu", function()
         end
     end
 
-    -- New buttons for managing Vampire Abilities
     local manageVampireAbilitiesButton = vgui.Create("DButton", playerPanel)
     manageVampireAbilitiesButton:SetText("Manage Vampire Abilities")
     manageVampireAbilitiesButton:Dock(BOTTOM)
@@ -186,7 +185,8 @@ net.Receive("OpenAdminMenu", function()
         net.SendToServer()
     end
 
-    -- Guild Admin Panel
+-- Guild Admin Panel
+
     local guildAdminPanel = vgui.Create("DPanel", sheet)
     guildAdminPanel:Dock(FILL)
     sheet:AddSheet("Guild Admin", guildAdminPanel, "icon16/group.png")
@@ -218,7 +218,6 @@ net.Receive("OpenAdminMenu", function()
             table.insert(members, {name = "Lord of Strength", rank = "Lord"})
         end
 
-        -- Fetch player list from the database
         net.Start("RequestGuildMembers")
         net.WriteString(guildName)
         net.SendToServer()
@@ -233,7 +232,7 @@ net.Receive("OpenAdminMenu", function()
                 local guild = HunterGuildsConfig[guildName]
                 local aRankIndex = table.KeyFromValue(guild.ranks, a.rank) or 0
                 local bRankIndex = table.KeyFromValue(guild.ranks, b.rank) or 0
-                return aRankIndex < bRankIndex -- Change comparison to ensure higher ranks are at the top
+                return aRankIndex < bRankIndex
             end)
 
             for _, member in ipairs(members) do
@@ -271,7 +270,6 @@ net.Receive("OpenAdminMenu", function()
         return nil
     end
 
-    -- Add promote, demote, and kick buttons
     local promoteRankButton = vgui.Create("DButton", guildAdminPanel)
     promoteRankButton:SetText("Promote Rank")
     promoteRankButton:Dock(BOTTOM)
@@ -282,7 +280,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("PromoteGuildRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -298,7 +296,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("DemoteGuildRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -314,7 +312,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("KickGuildMember")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the kick
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -353,7 +351,6 @@ net.Receive("OpenAdminMenu", function()
             table.insert(members, {name = "Lord of Strength", rank = "Lord of Strength"})
         end
 
-        -- Fetch player list from the database
         net.Start("RequestCovenMembers")
         net.WriteString(covenName)
         net.SendToServer()
@@ -364,12 +361,11 @@ net.Receive("OpenAdminMenu", function()
                 table.insert(members, {name = member.name, rank = member.rank})
             end
 
-            -- Sort members to display the highest ranks at the top
             table.sort(members, function(a, b)
                 local coven = VampireCovensConfig[covenName]
                 local aRankIndex = table.KeyFromValue(coven.ranks, a.rank) or 0
                 local bRankIndex = table.KeyFromValue(coven.ranks, b.rank) or 0
-                return aRankIndex > bRankIndex -- Reverse comparison for highest ranks at the top
+                return aRankIndex > bRankIndex
             end)
 
             for _, member in ipairs(members) do
@@ -401,7 +397,6 @@ net.Receive("OpenAdminMenu", function()
         return nil
     end
 
-    -- Add promote, demote, and kick buttons
     local promoteRankButton = vgui.Create("DButton", covenAdminPanel)
     promoteRankButton:SetText("Promote Rank")
     promoteRankButton:Dock(BOTTOM)
@@ -412,7 +407,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("PromoteCovenRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -428,7 +423,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("DemoteCovenRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -444,7 +439,7 @@ net.Receive("OpenAdminMenu", function()
             net.Start("KickCovenMember")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the kick
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -557,7 +552,6 @@ net.Receive("OpenPlayerWeaponsMenu", function()
     end
 end)
 
--- New menu for managing Vampire Abilities
 net.Receive("OpenVampireAbilitiesMenu", function()
     local abilities = net.ReadTable()
 

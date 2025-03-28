@@ -2,12 +2,10 @@
 
 include("config/sh_global_config.lua")
 
--- Function to check if a player is an admin
 local function IsAdmin(ply)
     return GlobalConfig.AdminUserGroups[ply:GetUserGroup()] or false
 end
 
--- Command to turn a player into a hunter
 concommand.Add("make_hunter", function(ply, cmd, args)
     if not IsAdmin(ply) then return end
     local target = args[1]
@@ -22,7 +20,6 @@ concommand.Add("make_hunter", function(ply, cmd, args)
     end
 end)
 
--- Command to add experience to a hunter
 concommand.Add("add_experience", function(ply, cmd, args)
     if not IsAdmin(ply) then return end
     local target = args[1]

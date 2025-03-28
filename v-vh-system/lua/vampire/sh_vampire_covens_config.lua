@@ -16,8 +16,7 @@ VampireCovensConfig = {
             "High Priest",
             "Lord of Blood"
         },
-        customPerks = function(ply)
-            -- Example custom perk: Regenerate health over time
+        customPerks = function(ply) -- Custom functions can be used to add perks or abilities
             timer.Create("CovenOfBloodRegen_" .. ply:SteamID(), 10, 0, function()
                 if IsValid(ply) and ply:Health() < ply:GetMaxHealth() then
                     ply:SetHealth(math.min(ply:Health() + 10, ply:GetMaxHealth()))
@@ -41,7 +40,6 @@ VampireCovensConfig = {
             "Lord of Shadows"
         },
         customPerks = function(ply)
-            -- Example custom perk: Increase jump power
             ply:SetJumpPower(300)
         end
     },
@@ -61,7 +59,6 @@ VampireCovensConfig = {
             "Lord of Strength"
         },
         customPerks = function(ply)
-            -- Example custom perk: Increase melee damage
             ply:SetNWFloat("CovenOfStrengthMeleeDamage", 1.5)
         end
     }

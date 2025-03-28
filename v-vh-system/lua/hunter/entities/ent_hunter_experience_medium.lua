@@ -24,7 +24,7 @@ end
 
 function ENT:Use(activator, caller)
     if activator:IsPlayer() then
-        AddExperience(activator, 5000) -- Give 5000 experience
+        AddExperience(activator, 5000)
         self:Remove()
     end
 end

@@ -6,7 +6,7 @@ HunterGuildsConfig = {
         benefits = {
             speed = 350,
             health = 150,
-            armor = 50 -- Extra armor benefit
+            armor = 50
         },
         ranks = {
             "Rookie",
@@ -16,8 +16,7 @@ HunterGuildsConfig = {
             "Commander",
             "Lord"
         },
-        customPerks = function(ply)
-            -- Example custom perk: Increase jump power
+        customPerks = function(ply) -- Custom functions can be used to add perks or weapons
             ply:SetJumpPower(300)
         end
     },
@@ -26,7 +25,7 @@ HunterGuildsConfig = {
         benefits = {
             speed = 300,
             health = 200,
-            armor = 75 -- Extra armor benefit
+            armor = 75
         },
         ranks = {
             "Rookie",
@@ -37,7 +36,6 @@ HunterGuildsConfig = {
             "Lord"
         },
         customPerks = function(ply)
-            -- Example custom perk: Regenerate health over time
             timer.Create("GuildOfLightRegen_" .. ply:SteamID(), 10, 0, function()
                 if IsValid(ply) and ply:Health() < ply:GetMaxHealth() then
                     ply:SetHealth(math.min(ply:Health() + 10, ply:GetMaxHealth()))
@@ -50,7 +48,7 @@ HunterGuildsConfig = {
         benefits = {
             speed = 250,
             health = 250,
-            armor = 100 -- Extra armor benefit
+            armor = 100
         },
         ranks = {
             "Rookie",
@@ -61,7 +59,6 @@ HunterGuildsConfig = {
             "Lord"
         },
         customPerks = function(ply)
-            -- Example custom perk: Increase melee damage
             ply:SetNWFloat("GuildOfStrengthMeleeDamage", 1.5)
         end
     }

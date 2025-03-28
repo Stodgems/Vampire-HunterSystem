@@ -16,7 +16,7 @@ net.Receive("OpenHunterMerchantMenu", function()
 
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Hunter Merchant")
-    frame:SetSize(550, 600) -- Increase the width to accommodate more text
+    frame:SetSize(550, 600)
     frame:Center()
     frame:MakePopup()
 
@@ -49,7 +49,7 @@ net.Receive("OpenHunterMerchantMenu", function()
         costLabel:SetText("Cost: " .. item.cost .. " hearts")
         costLabel:SetFont("Trebuchet24")
         costLabel:Dock(LEFT)
-        costLabel:SizeToContents() -- Adjust the size to fit the text
+        costLabel:SizeToContents()
         costLabel:SetTextColor(Color(255, 0, 0))
 
         local buyButton = vgui.Create("DButton", itemPanel)
@@ -60,8 +60,8 @@ net.Receive("OpenHunterMerchantMenu", function()
 
         local function updateButtonText(text)
             buyButton:SetText(text)
-            buyButton:SizeToContentsX(20) -- Add some padding
-            buyButton:SetWide(math.max(buyButton:GetWide(), 80)) -- Ensure minimum width
+            buyButton:SizeToContentsX(20)
+            buyButton:SetWide(math.max(buyButton:GetWide(), 80))
         end
 
         if table.HasValue(PurchasedItems, item.class) then

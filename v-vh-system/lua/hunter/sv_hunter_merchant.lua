@@ -9,7 +9,7 @@ HunterMerchantItems = {}
 PurchasedItems = {}
 
 local function LoadHunterMerchantItems()
-    HunterMerchantItems = {} -- Clear the table to prevent duplicates
+    HunterMerchantItems = {}
 
     if not sql.TableExists("hunter_merchant_items") then
         sql.Query("CREATE TABLE hunter_merchant_items (class TEXT, cost INTEGER)")
@@ -22,7 +22,6 @@ local function LoadHunterMerchantItems()
         end
     end
 
-    -- Ensure weapon_hunter_sword is always available
     local swordExists = false
     for _, item in ipairs(HunterMerchantItems) do
         if item.class == "weapon_hunter_sword" then
@@ -64,7 +63,7 @@ function SaveHunterWeapons(ply)
         ply.hunterWeapons = {}
     end
     local weapons = table.concat(ply.hunterWeapons, ",")
-    weapons = weapons:gsub("^,", "") -- Remove leading comma if present
+    weapons = weapons:gsub("^,", "")
     local steamID = sql.SQLStr(ply:SteamID())
     local weaponsEscaped = sql.SQLStr(weapons)
     local query = string.format("UPDATE hunter_data SET weapons = %s WHERE steamID = %s", weaponsEscaped, steamID)
@@ -79,7 +78,7 @@ local function LoadHunterWeapons(ply)
     else
         ply.hunterWeapons = {}
     end
-    hunters[ply:SteamID()].weapons = ply.hunterWeapons -- Ensure the hunter data is updated with the loaded weapons
+    hunters[ply:SteamID()].weapons = ply.hunterWeapons
 end
 
 net.Receive("BuyHunterWeapon", function(len, ply)
@@ -105,13 +104,11 @@ net.Receive("BuyHunterWeapon", function(len, ply)
         table.insert(ply.hunterWeapons, weaponClass)
         SaveHunterWeapons(ply)
     end
-    -- Ensure the hunter data is updated with the new weapons
     hunters[ply:SteamID()].weapons = ply.hunterWeapons
     SaveHunterData()
     SyncHunterData()
     UpdateHunterHUD(ply)
 
-    -- Track purchased items
     PurchasedItems[ply:SteamID()] = PurchasedItems[ply:SteamID()] or {}
     table.insert(PurchasedItems[ply:SteamID()], weaponClass)
     SavePurchasedItem(ply, weaponClass)

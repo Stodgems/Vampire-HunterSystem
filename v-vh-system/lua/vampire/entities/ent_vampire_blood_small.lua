@@ -24,7 +24,7 @@ end
 
 function ENT:Use(activator, caller)
     if activator:IsPlayer() then
-        AddBlood(activator, 2500) -- Give 50 blood
+        AddBlood(activator, 2500)
         self:Remove()
     end
 end

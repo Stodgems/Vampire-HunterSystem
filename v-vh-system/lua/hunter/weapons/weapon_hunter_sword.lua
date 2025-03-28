@@ -1,4 +1,5 @@
 -- Hunter Sword SWEP
+-- Model is currently just set to a crowbar untill I decide to either make a custom model or find one that looks how I want it to look
 
 SWEP = {}
 SWEP.Base = "weapon_base"
@@ -40,8 +41,8 @@ function SWEP:PrimaryAttack()
     local ply = self.Owner
     if not IsValid(ply) then return end
 
-    ply:SetAnimation(PLAYER_ATTACK1) -- Play attack animation
-    self:SendWeaponAnim(ACT_VM_HITCENTER) -- Play weapon animation
+    ply:SetAnimation(PLAYER_ATTACK1)
+    self:SendWeaponAnim(ACT_VM_HITCENTER)
 
     local tr = ply:GetEyeTrace()
     if not tr.Hit then return end
@@ -53,7 +54,7 @@ function SWEP:PrimaryAttack()
             dmg:SetAttacker(ply)
             dmg:SetInflictor(self)
             dmg:SetDamageType(DMG_SLASH)
-            dmg:SetDamage(25) -- Consistent damage for the sword
+            dmg:SetDamage(25)
 
             target:TakeDamageInfo(dmg)
             ply:EmitSound("npc/fast_zombie/claw_strike2.wav")
@@ -64,7 +65,6 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    -- No secondary attack
 end
 
 weapons.Register(SWEP, "weapon_hunter_sword")

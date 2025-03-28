@@ -2,7 +2,7 @@
 
 AddCSLuaFile()
 
-ENT = {} -- Properly define the ENT table
+ENT = {}
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Vampire Abilities Trainer"
@@ -31,8 +31,7 @@ function ENT:Use(activator, caller)
     end
 
     if self.NextUse and self.NextUse > CurTime() then return end
-    self.NextUse = CurTime() + 1 -- 1 second cooldown
-
+    self.NextUse = CurTime() + 1 
     net.Start("OpenVampireAbilitiesMenu")
     net.WriteTable(VampireAbilities)
     net.Send(activator)

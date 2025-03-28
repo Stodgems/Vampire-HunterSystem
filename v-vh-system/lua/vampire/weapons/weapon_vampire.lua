@@ -60,7 +60,6 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    -- No secondary attack
 end
 
 function DrainBlood(ply, target)

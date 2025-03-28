@@ -1,4 +1,5 @@
 -- Wooden Stake SWEP
+-- Similar to the Sword this is set to a crowbar model till I make a custom model or find one.
 
 SWEP = {}
 SWEP.Base = "weapon_base"

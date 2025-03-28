@@ -1,6 +1,6 @@
 -- Vampire Covens Menu
 
-include("vampire/sh_vampire_covens_config.lua") -- Include the Vampire Covens config
+include("vampire/sh_vampire_covens_config.lua")
 
 net.Receive("OpenVampireCovensMenu", function()
     local frame = vgui.Create("DFrame")
@@ -29,7 +29,7 @@ net.Receive("OpenVampireCovensMenu", function()
         memberList:Clear()
         local members = {}
 
-        -- Add preset lords for each coven
+        -- The preset Lords of the Covens are addded here, they can be removed and changed if needed
         if covenName == "Coven of Blood" then
             table.insert(members, {name = "Lord of Blood", rank = "Lord of Blood"})
         elseif covenName == "Coven of Shadows" then
@@ -38,7 +38,6 @@ net.Receive("OpenVampireCovensMenu", function()
             table.insert(members, {name = "Lord of Strength", rank = "Lord of Strength"})
         end
 
-        -- Fetch player list from the server
         net.Start("RequestCovenMembers")
         net.WriteString(covenName)
         net.SendToServer()
@@ -49,12 +48,11 @@ net.Receive("OpenVampireCovensMenu", function()
                 table.insert(members, {name = member.name, rank = member.rank})
             end
 
-            -- Sort members to display the highest ranks at the top
             table.sort(members, function(a, b)
                 local coven = VampireCovensConfig[covenName]
                 local aRankIndex = table.KeyFromValue(coven.ranks, a.rank) or 0
                 local bRankIndex = table.KeyFromValue(coven.ranks, b.rank) or 0
-                return aRankIndex > bRankIndex -- Reverse comparison for highest ranks at the top
+                return aRankIndex > bRankIndex
             end)
 
             for _, member in ipairs(members) do
@@ -101,7 +99,7 @@ net.Receive("OpenVampireCovensMenu", function()
             net.Start("JoinVampireCoven")
             net.WriteString(covenName)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the join request
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -113,7 +111,7 @@ net.Receive("OpenVampireCovensMenu", function()
     leaveCovenButton.DoClick = function()
         net.Start("LeaveVampireCoven")
         net.SendToServer()
-        timer.Simple(1, function() -- Delay to ensure the server processes the leave request
+        timer.Simple(1, function()
             local covenName = getSelectedCoven()
             if covenName then
                 updateMemberList(covenName)
@@ -132,7 +130,7 @@ net.Receive("OpenVampireCovensMenu", function()
             net.Start("PromoteCovenRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -148,7 +146,7 @@ net.Receive("OpenVampireCovensMenu", function()
             net.Start("DemoteCovenRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
@@ -164,13 +162,13 @@ net.Receive("OpenVampireCovensMenu", function()
             net.Start("KickCovenMember")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the kick
+            timer.Simple(1, function()
                 updateMemberList(covenName)
             end)
         end
     end
 
-    -- Add right-click context menu for promote, demote, and kick
+
     memberList.OnRowRightClick = function(_, rowIndex, row)
         local menu = DermaMenu()
         menu:AddOption("Promote", function()
@@ -180,7 +178,7 @@ net.Receive("OpenVampireCovensMenu", function()
                 net.Start("PromoteCovenRank")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+                timer.Simple(1, function()
                     updateMemberList(covenName)
                 end)
             end
@@ -192,7 +190,7 @@ net.Receive("OpenVampireCovensMenu", function()
                 net.Start("DemoteCovenRank")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+                timer.Simple(1, function()
                     updateMemberList(covenName)
                 end)
             end
@@ -204,7 +202,7 @@ net.Receive("OpenVampireCovensMenu", function()
                 net.Start("KickCovenMember")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the kick
+                timer.Simple(1, function()
                     updateMemberList(covenName)
                 end)
             end

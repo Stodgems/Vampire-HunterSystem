@@ -2,7 +2,6 @@
 
 include("vampire/sh_vampire_config.lua")
 
--- Initialize the vampires table
 if SERVER then
     vampires = vampires or {}
     util.AddNetworkString("SyncVampireData")
@@ -15,7 +14,6 @@ else
     end)
 end
 
--- Function to save vampire data to the SQLite database
 function SaveVampireData()
     for steamID, data in pairs(vampires) do
         local query = string.format(
@@ -31,14 +29,13 @@ function SaveVampireData()
     end
 end
 
--- Function to remove vampire data from the SQLite database
+
 local function RemoveVampireData(steamID)
     local steamIDEscaped = sql.SQLStr(steamID)
     sql.Query(string.format("DELETE FROM vampire_data WHERE steamID = %s", steamIDEscaped))
     sql.Query(string.format("DELETE FROM purchased_abilities WHERE steamID = %s", steamIDEscaped)) -- Remove purchased abilities
 end
 
--- Function to load vampire data from the SQLite database
 local function LoadVampireData()
     if not sql.TableExists("vampire_data") then
         sql.Query("CREATE TABLE vampire_data (steamID TEXT PRIMARY KEY, blood INTEGER, tier TEXT, medallions INTEGER)")
@@ -52,7 +49,6 @@ local function LoadVampireData()
     end
 end
 
--- Function to sync vampire data with clients
 local function SyncVampireData()
     if SERVER then
         if timer.Exists("SyncVampireDataTimer") then return end
@@ -64,7 +60,6 @@ local function SyncVampireData()
     end
 end
 
--- Function to turn a player into a vampire
 function MakeVampire(ply)
     if not ply:IsPlayer() then return end
     if IsHunter(ply) then
@@ -81,7 +76,6 @@ function MakeVampire(ply)
     end
 end
 
--- Function to remove a player from being a vampire
 function RemoveVampire(ply)
     if not ply:IsPlayer() then return end
     vampires[ply:SteamID()] = nil
@@ -93,20 +87,17 @@ function RemoveVampire(ply)
     UpdateVampireHUD(ply)
 end
 
--- Function to reset all perks for a player
 function ResetVampirePerks(ply)
-    ply:SetRunSpeed(250) -- Reset to default speed
-    ply:SetHealth(100) -- Reset to default health
-    ply:ConCommand("pp_mat_overlay ''") -- Reset night vision
+    ply:SetRunSpeed(250)
+    ply:SetHealth(100)
+    ply:ConCommand("pp_mat_overlay ''")
 end
 
--- Function to check if a player is a vampire
 function IsVampire(ply)
-    if not IsValid(ply) or not ply:IsPlayer() then return false end -- Ensure the input is a valid player
+    if not IsValid(ply) or not ply:IsPlayer() then return false end
     return vampires[ply:SteamID()] ~= nil
 end
 
--- Function to update vampire stats based on their tier
 function UpdateVampireStats(ply)
     local vampire = vampires[ply:SteamID()]
     if not vampire then return end
@@ -133,13 +124,11 @@ function UpdateVampireStats(ply)
     end
 end
 
--- Function to add blood to a vampire
 function AddBlood(ply, amount)
     if not IsVampire(ply) then return end
     local vampire = vampires[ply:SteamID()]
     vampire.blood = vampire.blood + amount
 
-    -- Update tier based on blood level
     local newTier = vampire.tier
     for tier, config in SortedPairsByMemberValue(VampireConfig.Tiers, "threshold", true) do
         if vampire.blood >= config.threshold then
@@ -163,7 +152,6 @@ function AddBlood(ply, amount)
     end
 end
 
--- Function to start draining blood from a target
 function StartDrainBlood(ply, target)
     if not IsVampire(ply) then return end
     if not IsValid(target) or target:Health() <= 0 then return end
@@ -180,7 +168,6 @@ function StartDrainBlood(ply, target)
     end)
 end
 
--- Function to drain blood from a target
 function DrainBlood(ply, target)
     if not IsVampire(ply) then return end
     if not IsValid(target) or target:Health() <= 0 then return end
@@ -188,7 +175,6 @@ function DrainBlood(ply, target)
     AddBlood(ply, 50)
 end
 
--- Function to add a hunter medallion to a vampire
 function AddHunterMedallion(ply)
     if not IsVampire(ply) then return end
     local vampire = vampires[ply:SteamID()]
@@ -200,7 +186,6 @@ function AddHunterMedallion(ply)
     end
 end
 
--- Function to update the vampire HUD
 if SERVER then
     function UpdateVampireHUD(ply)
         if not IsVampire(ply) then return end
@@ -221,20 +206,16 @@ hook.Add("PlayerDisconnected", "SaveVampireData", function(ply)
     SaveVampireData(ply)
 end)
 
--- Load vampire data when the server starts
 hook.Add("Initialize", "LoadVampireData", LoadVampireData)
 
--- Save vampire data when the server shuts down
 hook.Add("ShutDown", "SaveVampireData", SaveVampireData)
 
-// Sync vampire data with clients when they join
 hook.Add("PlayerInitialSpawn", "SyncVampireData", function(ply)
     net.Start("SyncVampireData")
     net.WriteTable(vampires)
     net.Send(ply)
 end)
 
-// Give vampire weapon to vampires when they spawn
 hook.Add("PlayerSpawn", "VampirePlayerSpawn", function(ply)
     if IsVampire(ply) then
         UpdateVampireStats(ply)
@@ -247,7 +228,6 @@ hook.Add("PlayerSpawn", "VampirePlayerSpawn", function(ply)
     end
 end)
 
-// Give vampire weapon to vampires when they change job
 hook.Add("OnPlayerChangedTeam", "VampirePlayerChangedTeam", function(ply, oldTeam, newTeam)
     if IsVampire(ply) then
         timer.Simple(0.1, function()
@@ -258,7 +238,6 @@ hook.Add("OnPlayerChangedTeam", "VampirePlayerChangedTeam", function(ply, oldTea
     end
 end)
 
-// Update vampire model if they reach the threshold when they die
 hook.Add("PlayerDeath", "VampirePlayerDeath", function(ply)
     if IsVampire(ply) then
         timer.Simple(0.1, function()
@@ -269,7 +248,6 @@ hook.Add("PlayerDeath", "VampirePlayerDeath", function(ply)
     end
 end)
 
-// Add a hunter medallion to vampire when they kill a hunter
 hook.Add("PlayerDeath", "VampireKillsHunter", function(victim, inflictor, attacker)
     if IsVampire(attacker) and IsHunter(victim) then
         AddHunterMedallion(attacker)

@@ -1,9 +1,7 @@
 -- Vampire System
 
--- Table to store vampire players and their blood levels
 local vampires = {}
 
--- Function to turn a player into a vampire
 function MakeVampire(ply)
     if not ply:IsPlayer() then return end
     vampires[ply:SteamID()] = { blood = 0, tier = "Thrall" }
@@ -11,12 +9,11 @@ function MakeVampire(ply)
     ply:ChatPrint("You have been turned into a vampire!")
 end
 
--- Function to check if a player is a vampire
 function IsVampire(ply)
     return vampires[ply:SteamID()] ~= nil
 end
 
--- Function to update vampire stats based on their tier
+
 function UpdateVampireStats(ply)
     local vampire = vampires[ply:SteamID()]
     if not vampire then return end
@@ -48,13 +45,11 @@ function UpdateVampireStats(ply)
     ply:SetRunSpeed(speed)
 end
 
--- Function to add blood to a vampire
 function AddBlood(ply, amount)
     if not IsVampire(ply) then return end
     local vampire = vampires[ply:SteamID()]
     vampire.blood = vampire.blood + amount
 
-    -- Update tier based on blood level
     if vampire.blood >= 100000 then
         vampire.tier = "Dracula"
     elseif vampire.blood >= 50000 then
@@ -73,7 +68,6 @@ function AddBlood(ply, amount)
     ply:ChatPrint("You have drunk blood. Current tier: " .. vampire.tier)
 end
 
--- Function to drain blood from a target
 function DrainBlood(ply, target, amount, rate)
     if not IsVampire(ply) then return end
     if not IsValid(target) then return end
@@ -103,7 +97,6 @@ function DrainBlood(ply, target, amount, rate)
     end)
 end
 
--- Hook to handle player spawn
 hook.Add("PlayerSpawn", "VampirePlayerSpawn", function(ply)
     if IsVampire(ply) then
         UpdateVampireStats(ply)

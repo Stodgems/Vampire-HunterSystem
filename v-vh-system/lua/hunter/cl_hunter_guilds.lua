@@ -1,11 +1,11 @@
 -- Hunter Guilds Menu
 
-include("hunter/sh_hunter_guilds_config.lua") -- Include the Hunter Guilds config
+include("hunter/sh_hunter_guilds_config.lua")
 
 net.Receive("OpenHunterGuildsMenu", function()
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Hunter Guilds")
-    frame:SetSize(600, 600) -- Increase the size to accommodate more information
+    frame:SetSize(600, 600)
     frame:Center()
     frame:MakePopup()
 
@@ -25,6 +25,7 @@ net.Receive("OpenHunterGuildsMenu", function()
     memberList:AddColumn("Player")
     memberList:AddColumn("Rank")
 
+-- The preset Lords of the Guilds are addded here, they can be removed and changed if needed
     local function updateMemberList(guildName)
         memberList:Clear()
         local members = {}
@@ -36,7 +37,6 @@ net.Receive("OpenHunterGuildsMenu", function()
             table.insert(members, {name = "Lord of Strength", rank = "Lord"})
         end
 
-        -- Fetch player list from the database
         net.Start("RequestGuildMembers")
         net.WriteString(guildName)
         net.SendToServer()
@@ -47,12 +47,11 @@ net.Receive("OpenHunterGuildsMenu", function()
                 table.insert(members, {name = member.name, rank = member.rank})
             end
 
-            -- Sort members to display the highest ranks at the top
             table.sort(members, function(a, b)
                 local guild = HunterGuildsConfig[guildName]
                 local aRankIndex = table.KeyFromValue(guild.ranks, a.rank) or 0
                 local bRankIndex = table.KeyFromValue(guild.ranks, b.rank) or 0
-                return aRankIndex > bRankIndex -- Reverse comparison for highest ranks at the top
+                return aRankIndex > bRankIndex
             end)
 
             for _, member in ipairs(members) do
@@ -99,7 +98,7 @@ net.Receive("OpenHunterGuildsMenu", function()
             net.Start("JoinHunterGuild")
             net.WriteString(guildName)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the join request
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -111,7 +110,7 @@ net.Receive("OpenHunterGuildsMenu", function()
     leaveGuildButton.DoClick = function()
         net.Start("LeaveHunterGuild")
         net.SendToServer()
-        timer.Simple(1, function() -- Delay to ensure the server processes the leave request
+        timer.Simple(1, function()
             local guildName = getSelectedGuild()
             if guildName then
                 updateMemberList(guildName)
@@ -119,7 +118,6 @@ net.Receive("OpenHunterGuildsMenu", function()
         end)
     end
 
-    -- Add admin promote and demote buttons
     local promoteRankButton = vgui.Create("DButton", frame)
     promoteRankButton:SetText("Promote Rank")
     promoteRankButton:Dock(BOTTOM)
@@ -130,7 +128,7 @@ net.Receive("OpenHunterGuildsMenu", function()
             net.Start("PromoteGuildRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -146,13 +144,12 @@ net.Receive("OpenHunterGuildsMenu", function()
             net.Start("DemoteGuildRank")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
     end
 
-    -- Add kick button for Leader and above rank + admins
     local kickMemberButton = vgui.Create("DButton", frame)
     kickMemberButton:SetText("Kick Member")
     kickMemberButton:Dock(BOTTOM)
@@ -163,7 +160,7 @@ net.Receive("OpenHunterGuildsMenu", function()
             net.Start("KickGuildMember")
             net.WriteString(memberSteamID)
             net.SendToServer()
-            timer.Simple(1, function() -- Delay to ensure the server processes the kick
+            timer.Simple(1, function()
                 updateMemberList(guildName)
             end)
         end
@@ -187,7 +184,7 @@ net.Receive("OpenHunterGuildsMenu", function()
                 net.Start("PromoteGuildRank")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the promotion
+                timer.Simple(1, function()
                     updateMemberList(guildName)
                 end)
             end
@@ -199,7 +196,7 @@ net.Receive("OpenHunterGuildsMenu", function()
                 net.Start("DemoteGuildRank")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the demotion
+                timer.Simple(1, function()
                     updateMemberList(guildName)
                 end)
             end
@@ -211,7 +208,7 @@ net.Receive("OpenHunterGuildsMenu", function()
                 net.Start("KickGuildMember")
                 net.WriteString(memberSteamID)
                 net.SendToServer()
-                timer.Simple(1, function() -- Delay to ensure the server processes the kick
+                timer.Simple(1, function()
                     updateMemberList(guildName)
                 end)
             end

@@ -1,4 +1,4 @@
--- Vampire Abilities Menu
+
 
 local VampireAbilities = {}
 local PurchasedAbilities = {}
@@ -16,7 +16,7 @@ net.Receive("OpenVampireAbilitiesMenu", function()
 
     local frame = vgui.Create("DFrame")
     frame:SetTitle("Vampire Abilities Trainer")
-    frame:SetSize(550, 600) -- Width of the UI of the abilities menu can be changed here
+    frame:SetSize(550, 600) 
     frame:Center()
     frame:MakePopup()
 

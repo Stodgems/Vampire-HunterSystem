@@ -1,4 +1,4 @@
--- Vampire Covens Server Logic
+
 
 include("vampire/sh_vampire_covens_config.lua")
 include("vampire/sh_vampire_covens.lua")
@@ -49,7 +49,7 @@ net.Receive("PromoteCovenRank", function(len, ply)
 
     if target then
         if IsAdmin(ply) then
-            PromoteCovenRank(ply, target, true) -- Allow admin to promote ranks even if they arent the correct coven rank
+            PromoteCovenRank(ply, target, true) 
         else
             PromoteCovenRank(ply, target, false)
         end
@@ -62,7 +62,7 @@ net.Receive("DemoteCovenRank", function(len, ply)
 
     if target then
         if IsAdmin(ply) then
-            DemoteCovenRank(ply, target, true) -- Allow admin to demote ranks even if they arent the correct coven rank
+            DemoteCovenRank(ply, target, true) 
         else
             DemoteCovenRank(ply, target, false)
         end

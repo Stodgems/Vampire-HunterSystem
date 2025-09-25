@@ -1,4 +1,4 @@
--- Hunter Merchant Purchase Logic
+
 
 util.AddNetworkString("OpenHunterMerchantMenu")
 util.AddNetworkString("BuyHunterWeapon")

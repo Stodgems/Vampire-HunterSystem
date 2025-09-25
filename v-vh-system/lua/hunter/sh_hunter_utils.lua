@@ -1,4 +1,4 @@
--- Hunter Utility Functions
+
 
 include("hunter/sh_hunter_config.lua")
 include("hunter/sh_hunter_guilds.lua")
@@ -25,7 +25,7 @@ end
 local function RemoveHunterData(steamID)
     local query = string.format("DELETE FROM hunter_data WHERE steamID = '%s'", steamID)
     sql.Query(query)
-    sql.Query(string.format("DELETE FROM purchased_items WHERE steamID = %s", sql.SQLStr(steamID))) -- Remove purchased items
+    sql.Query(string.format("DELETE FROM purchased_items WHERE steamID = %s", sql.SQLStr(steamID))) 
 end
 
 local function LoadHunterData()
@@ -107,10 +107,16 @@ function UpdateHunterStats(ply)
     if config.model then
         ply:SetModel(config.model)
     else
-        local jobModel = ply:getJobTable().model
+        local jobModel
+        if isfunction(ply.getJobTable) then
+            local job = ply:getJobTable()
+            if job and job.model then
+                jobModel = job.model
+            end
+        end
         if istable(jobModel) then
             ply:SetModel(jobModel[1])
-        else
+        elseif isstring(jobModel) then
             ply:SetModel(jobModel)
         end
     end

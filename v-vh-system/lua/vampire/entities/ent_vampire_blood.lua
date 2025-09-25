@@ -1,4 +1,4 @@
--- Vampire Blood Entity
+
 
 AddCSLuaFile()
 

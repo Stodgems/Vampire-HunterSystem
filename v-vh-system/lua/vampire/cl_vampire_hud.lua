@@ -1,4 +1,4 @@
--- Vampire HUD
+
 
 local vampireData = {
     blood = 0,

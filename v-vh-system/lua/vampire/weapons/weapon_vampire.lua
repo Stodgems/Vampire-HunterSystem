@@ -1,4 +1,4 @@
--- Vampire SWEP
+
 
 SWEP = {}
 SWEP.Base = "weapon_base"
@@ -37,36 +37,34 @@ end
 function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire(CurTime() + 0.8)
 
-    if SERVER then
-        local tr = self.Owner:GetEyeTrace()
-        if tr.Hit and tr.HitPos:Distance(self.Owner:GetPos()) <= 75 then
-            local dmg = DamageInfo()
-            dmg:SetDamage(10)
-            dmg:SetAttacker(self.Owner)
-            dmg:SetInflictor(self)
-            dmg:SetDamageType(DMG_SLASH)
-            tr.Entity:TakeDamageInfo(dmg)
-        end
-    end
+    local owner = self.Owner
+    if not IsValid(owner) then return end
 
-    if not IsVampire(self.Owner) then return end
-
-    local tr = self.Owner:GetEyeTrace()
+    local tr = owner:GetEyeTrace()
     local target = tr.Entity
 
-    if not IsValid(target) or (not target:IsPlayer() and not target:IsNPC()) then return end
+    if SERVER then
+        if tr.Hit and tr.HitPos:Distance(owner:GetPos()) <= 75 then
+            
+            if IsValid(target) then
+                local dmg = DamageInfo()
+                dmg:SetDamage(10)
+                dmg:SetAttacker(owner)
+                dmg:SetInflictor(self)
+                dmg:SetDamageType(DMG_SLASH)
+                target:TakeDamageInfo(dmg)
+            end
+        end
 
-    DrainBlood(self.Owner, target)
+        
+        if IsVampire(owner) and IsValid(target) and (target:IsPlayer() or target:IsNPC()) then
+            AddBlood(owner, 50)
+        end
+    end
 end
 
 function SWEP:SecondaryAttack()
 end
 
-function DrainBlood(ply, target)
-    if not IsVampire(ply) then return end
-    if not IsValid(target) or target:Health() <= 0 then return end
-
-    AddBlood(ply, 50)
-end
 
 weapons.Register(SWEP, "weapon_vampire")

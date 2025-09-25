@@ -1,4 +1,4 @@
--- Large Hunter Experience Book Entity
+
 
 AddCSLuaFile()
 

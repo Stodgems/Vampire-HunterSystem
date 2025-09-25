@@ -1,4 +1,4 @@
--- Hunter Guilds Menu
+
 
 include("hunter/sh_hunter_guilds_config.lua")
 
@@ -14,6 +14,19 @@ net.Receive("OpenHunterGuildsMenu", function()
     guildList:SetWidth(200)
     guildList:SetMultiSelect(false)
     guildList:AddColumn("Guild Name")
+    
+    if not guildList.__oldAddLine then
+        guildList.__oldAddLine = guildList.AddLine
+        function guildList:AddLine(...)
+            local line = self:__oldAddLine(...)
+            if line and line.Columns then
+                for _, col in pairs(line.Columns) do
+                    if col.SetTextColor then col:SetTextColor(Color(235,235,235)) end
+                end
+            end
+            return line
+        end
+    end
 
     for guildName, _ in pairs(HunterGuildsConfig) do
         guildList:AddLine(guildName)
@@ -24,8 +37,21 @@ net.Receive("OpenHunterGuildsMenu", function()
     memberList:SetMultiSelect(false)
     memberList:AddColumn("Player")
     memberList:AddColumn("Rank")
+    
+    if not memberList.__oldAddLine then
+        memberList.__oldAddLine = memberList.AddLine
+        function memberList:AddLine(...)
+            local line = self:__oldAddLine(...)
+            if line and line.Columns then
+                for _, col in pairs(line.Columns) do
+                    if col.SetTextColor then col:SetTextColor(Color(235,235,235)) end
+                end
+            end
+            return line
+        end
+    end
 
--- The preset Lords of the Guilds are addded here, they can be removed and changed if needed
+
     local function updateMemberList(guildName)
         memberList:Clear()
         local members = {}

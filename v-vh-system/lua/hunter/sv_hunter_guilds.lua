@@ -1,4 +1,4 @@
--- Hunter Guilds Server Logic
+
 
 include("hunter/sh_hunter_guilds_config.lua")
 include("hunter/sh_hunter_guilds.lua")

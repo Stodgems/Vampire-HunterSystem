@@ -1,4 +1,4 @@
--- Vampire Abilities Trainer Entity
+
 
 AddCSLuaFile()
 

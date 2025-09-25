@@ -1,5 +1,5 @@
--- Wooden Stake SWEP
--- Similar to the Sword this is set to a crowbar model till I make a custom model or find one.
+
+
 
 SWEP = {}
 SWEP.Base = "weapon_base"
@@ -41,8 +41,8 @@ function SWEP:PrimaryAttack()
     local ply = self.Owner
     if not IsValid(ply) then return end
 
-    ply:SetAnimation(PLAYER_ATTACK1) -- Play attack animation
-    self:SendWeaponAnim(ACT_VM_HITCENTER) -- Play weapon animation
+    ply:SetAnimation(PLAYER_ATTACK1) 
+    self:SendWeaponAnim(ACT_VM_HITCENTER) 
 
     local tr = ply:GetEyeTrace()
     if not tr.Hit then return end
@@ -56,9 +56,9 @@ function SWEP:PrimaryAttack()
             dmg:SetDamageType(DMG_SLASH)
 
             if IsVampire(target) then
-                dmg:SetDamage(50) -- Higher damage for vampires
+                dmg:SetDamage(50) 
             else
-                dmg:SetDamage(10) -- Lower damage for others
+                dmg:SetDamage(10) 
             end
 
             target:TakeDamageInfo(dmg)
@@ -70,7 +70,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    -- No secondary attack
+    
 end
 
 weapons.Register(SWEP, "weapon_stake")

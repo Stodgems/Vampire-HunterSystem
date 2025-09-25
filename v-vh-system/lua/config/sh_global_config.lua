@@ -1,4 +1,4 @@
--- Global Configuration
+
 
 GlobalConfig = {
     AdminUserGroups = {

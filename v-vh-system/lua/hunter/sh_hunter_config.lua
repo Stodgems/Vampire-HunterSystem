@@ -1,4 +1,4 @@
--- Hunter Configuration
+
 
 HunterConfig = {
     Tiers = {

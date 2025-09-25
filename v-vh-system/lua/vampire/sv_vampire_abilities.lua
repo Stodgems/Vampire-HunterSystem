@@ -1,4 +1,4 @@
--- Vampire Abilities Purchase Logic
+
 
 util.AddNetworkString("OpenVampireAbilitiesMenu")
 util.AddNetworkString("BuyVampireAbility")
@@ -58,27 +58,11 @@ end
 LoadVampireAbilities()
 LoadPurchasedAbilities()
 
-function SaveVampireAbilities(ply)
-    if not ply.vampireAbilities then
-        ply.vampireAbilities = {}
-    end
-    local abilities = table.concat(ply.vampireAbilities, ",")
-    abilities = abilities:gsub("^,", "") -- Removes the leading comma if present before adding to the database
-    local steamID = sql.SQLStr(ply:SteamID())
-    local abilitiesEscaped = sql.SQLStr(abilities)
-    local query = string.format("UPDATE vampire_data SET abilities = %s WHERE steamID = %s", abilitiesEscaped, steamID)
-    sql.Query(query)
-end
-
-local function LoadVampireAbilities(ply)
-    local steamID = sql.SQLStr(ply:SteamID())
-    local result = sql.QueryRow(string.format("SELECT abilities FROM vampire_data WHERE steamID = %s", steamID))
-    if result and result.abilities then
-        ply.vampireAbilities = string.Explode(",", result.abilities)
-    else
-        ply.vampireAbilities = {}
-    end
-    vampires[ply:SteamID()].abilities = ply.vampireAbilities
+local function LoadPlayerVampireAbilities(ply)
+    local steamID = ply:SteamID()
+    ply.vampireAbilities = table.Copy(PurchasedAbilities[steamID] or {})
+    vampires[steamID] = vampires[steamID] or {}
+    vampires[steamID].abilities = ply.vampireAbilities
 end
 
 net.Receive("BuyVampireAbility", function(len, ply)
@@ -102,7 +86,6 @@ net.Receive("BuyVampireAbility", function(len, ply)
     end
     if not table.HasValue(ply.vampireAbilities, abilityClass) then
         table.insert(ply.vampireAbilities, abilityClass)
-        SaveVampireAbilities(ply)
     end
 
     vampires[ply:SteamID()].abilities = ply.vampireAbilities
@@ -110,7 +93,7 @@ net.Receive("BuyVampireAbility", function(len, ply)
     SyncVampireData()
     UpdateVampireHUD(ply)
 
-    -- Track purchased abilities from the entity
+    
     PurchasedAbilities[ply:SteamID()] = PurchasedAbilities[ply:SteamID()] or {}
     table.insert(PurchasedAbilities[ply:SteamID()], abilityClass)
     SavePurchasedAbility(ply, abilityClass)
@@ -131,20 +114,9 @@ end)
 
 hook.Add("PlayerSpawn", "GiveVampireAbilitiesOnSpawn", function(ply)
     if IsVampire(ply) then
-        LoadVampireAbilities(ply)
+        LoadPlayerVampireAbilities(ply)
         for _, ability in ipairs(ply.vampireAbilities) do
             ply:Give(ability)
         end
     end
 end)
-
-function SyncVampireData()
-    if SERVER then
-        if timer.Exists("SyncVampireDataTimer") then return end
-        timer.Create("SyncVampireDataTimer", 1, 1, function()
-            net.Start("SyncVampireData")
-            net.WriteTable(vampires)
-            net.Broadcast()
-        end)
-    end
-end

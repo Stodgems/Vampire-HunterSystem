@@ -1,4 +1,4 @@
--- Vampire Cure Entity
+
 
 AddCSLuaFile()
 

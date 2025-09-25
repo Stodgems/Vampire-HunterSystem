@@ -1,4 +1,4 @@
--- Hunter Guilds Configuration
+
 
 HunterGuildsConfig = {
     ["Guild of Shadows"] = {
@@ -16,7 +16,7 @@ HunterGuildsConfig = {
             "Commander",
             "Lord"
         },
-        customPerks = function(ply) -- Custom functions can be used to add perks or weapons
+        customPerks = function(ply) 
             ply:SetJumpPower(300)
         end
     },

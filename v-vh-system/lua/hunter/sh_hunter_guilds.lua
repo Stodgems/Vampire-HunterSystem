@@ -1,4 +1,4 @@
--- Hunter Guilds Logic
+
 
 if SERVER and _G.HunterGuildsLoaded then return end
 _G.HunterGuildsLoaded = true

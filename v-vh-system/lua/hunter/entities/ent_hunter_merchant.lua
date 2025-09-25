@@ -1,4 +1,4 @@
--- Hunter Merchant Entity
+
 
 AddCSLuaFile()
 

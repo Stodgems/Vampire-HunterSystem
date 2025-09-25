@@ -1,4 +1,4 @@
--- Vampire Commands
+
 
 include("config/sh_global_config.lua")
 

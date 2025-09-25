@@ -1,4 +1,4 @@
--- Medium Hunter Experience Book Entity
+
 
 AddCSLuaFile()
 

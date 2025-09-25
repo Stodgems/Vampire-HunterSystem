@@ -1,9 +1,12 @@
--- Admin Menu Logic
+
 
 include("hunter/sv_hunter_merchant.lua")
 include("hunter/sh_hunter_utils.lua")
 include("vampire/sv_vampire_abilities.lua")
 include("vampire/sh_vampire_utils.lua")
+include("werewolf/sh_werewolf_utils.lua")
+include("hybrid/sh_hybrid_utils.lua")
+include("hybrid/sv_hybrid_orders.lua")
 
 util.AddNetworkString("OpenAdminMenu")
 util.AddNetworkString("AdminMakeVampire")
@@ -29,6 +32,29 @@ util.AddNetworkString("EditVampireAbility")
 util.AddNetworkString("RemoveVampireAbility")
 util.AddNetworkString("RequestGuildMembers")
 util.AddNetworkString("ReceiveGuildMembers")
+
+util.AddNetworkString("AdminMakeWerewolf")
+util.AddNetworkString("AdminRemoveWerewolf")
+util.AddNetworkString("AdminAddRage")
+util.AddNetworkString("AdminAddMoonEssence")
+util.AddNetworkString("AdminStartWerewolfTransform")
+util.AddNetworkString("AdminEndWerewolfTransform")
+util.AddNetworkString("RequestWerewolfPacksMenu")
+
+util.AddNetworkString("AdminMakeHybrid")
+util.AddNetworkString("AdminRemoveHybrid")
+util.AddNetworkString("AdminAddHybridBlood")
+util.AddNetworkString("AdminAddHybridRage")
+util.AddNetworkString("AdminSetHybridBalance")
+util.AddNetworkString("AdminForceHybridTransform")
+
+util.AddNetworkString("AdminAssignWerewolfToPack")
+util.AddNetworkString("AdminRemoveFromWerewolfPack")
+
+util.AddNetworkString("AdminAssignHybridToOrder")
+util.AddNetworkString("AdminRemoveHybridFromOrder")
+util.AddNetworkString("PromoteHybridOrderMember")
+util.AddNetworkString("DemoteHybridOrderMember")
 
 local function IsAdmin(ply)
     local isAdmin = GlobalConfig.AdminUserGroups[ply:GetUserGroup()] or false
@@ -296,6 +322,195 @@ net.Receive("RequestGuildMembers", function(len, ply)
     net.Start("ReceiveGuildMembers")
     net.WriteTable(guildMembers)
     net.Send(ply)
+end)
+
+
+net.Receive("AdminMakeWerewolf", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        MakeWerewolf(target)
+    end
+end)
+
+net.Receive("AdminRemoveWerewolf", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsWerewolf(target) then
+        RemoveWerewolf(target)
+    end
+end)
+
+net.Receive("AdminAddRage", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local amount = net.ReadInt(32)
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        AddRage(target, amount)
+    end
+end)
+
+net.Receive("AdminAddMoonEssence", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local amount = net.ReadInt(32)
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        AddMoonEssence(target, amount)
+    end
+end)
+
+net.Receive("AdminStartWerewolfTransform", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        StartTransformation(target)
+    end
+end)
+
+net.Receive("AdminEndWerewolfTransform", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        EndTransformation(target)
+    end
+end)
+
+net.Receive("RequestWerewolfPacksMenu", function(len, ply)
+    if not IsAdmin(ply) then return end
+    net.Start("OpenWerewolfPacksMenu")
+    net.Send(ply)
+end)
+
+net.Receive("AdminAssignWerewolfToPack", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local packName = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsWerewolf(target) and WerewolfPacksConfig and WerewolfPacksConfig[packName] then
+        JoinPack(target, packName)
+    end
+end)
+
+net.Receive("AdminRemoveFromWerewolfPack", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsWerewolf(target) then
+        LeavePack(target)
+    end
+end)
+
+
+net.Receive("AdminMakeHybrid", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        MakeHybrid(target)
+    end
+end)
+
+net.Receive("AdminRemoveHybrid", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) then
+        RemoveHybrid(target)
+    end
+end)
+
+net.Receive("AdminAddHybridBlood", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local amount = net.ReadInt(32)
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        AddBloodToHybrid(target, amount)
+    end
+end)
+
+net.Receive("AdminAddHybridRage", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local amount = net.ReadInt(32)
+    local target = player.GetBySteamID(targetSteamID)
+    if target then
+        AddRageToHybrid(target, amount)
+    end
+end)
+
+net.Receive("AdminSetHybridBalance", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local balance = net.ReadInt(32)
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) and balance and balance >= -100 and balance <= 100 then
+        local hybrid = hybrids[target:SteamID()]
+        hybrid.balance = balance
+        UpdateHybridStats(target)
+        SaveHybridData()
+        SyncHybridData()
+    end
+end)
+
+net.Receive("AdminForceHybridTransform", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local formKey = net.ReadString() 
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) then
+        local hybrid = hybrids[target:SteamID()]
+        if hybrid.transformed then
+            EndHybridTransformation(target)
+        else
+            hybrid.lastTransform = 0
+            StartHybridTransformation(target, formKey)
+        end
+    end
+end)
+
+
+net.Receive("AdminAssignHybridToOrder", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local orderName = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) and HybridOrdersConfig and HybridOrdersConfig[orderName] then
+        AssignHybridToOrder(target, orderName)
+    end
+end)
+
+net.Receive("AdminRemoveHybridFromOrder", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) then
+        RemoveHybridFromOrder(target)
+    end
+end)
+
+net.Receive("PromoteHybridOrderMember", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) then
+        PromoteHybridOrderRank(target)
+    end
+end)
+
+net.Receive("DemoteHybridOrderMember", function(len, ply)
+    if not IsAdmin(ply) then return end
+    local targetSteamID = net.ReadString()
+    local target = player.GetBySteamID(targetSteamID)
+    if target and IsHybrid(target) then
+        DemoteHybridOrderRank(target)
+    end
 end)
 
 hook.Add("PlayerSay", "OpenAdminMenuCommand", function(ply, text)

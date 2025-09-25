@@ -1,5 +1,5 @@
--- Hunter Sword SWEP
--- Model is currently just set to a crowbar untill I decide to either make a custom model or find one that looks how I want it to look
+
+
 
 SWEP = {}
 SWEP.Base = "weapon_base"

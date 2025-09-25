@@ -1,4 +1,4 @@
--- Vampire Covens Configuration
+
 
 VampireCovensConfig = {
     ["Coven of Blood"] = {
@@ -16,7 +16,7 @@ VampireCovensConfig = {
             "High Priest",
             "Lord of Blood"
         },
-        customPerks = function(ply) -- Custom functions can be used to add perks or abilities
+        customPerks = function(ply) 
             timer.Create("CovenOfBloodRegen_" .. ply:SteamID(), 10, 0, function()
                 if IsValid(ply) and ply:Health() < ply:GetMaxHealth() then
                     ply:SetHealth(math.min(ply:Health() + 10, ply:GetMaxHealth()))

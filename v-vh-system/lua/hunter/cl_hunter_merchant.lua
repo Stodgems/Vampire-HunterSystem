@@ -1,4 +1,4 @@
--- Hunter Merchant Menu
+
 
 local HunterMerchantItems = {}
 local PurchasedItems = {}

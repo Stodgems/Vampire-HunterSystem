@@ -1,4 +1,4 @@
--- Vampire Utility Functions
+
 
 include("vampire/sh_vampire_config.lua")
 
@@ -33,7 +33,7 @@ end
 local function RemoveVampireData(steamID)
     local steamIDEscaped = sql.SQLStr(steamID)
     sql.Query(string.format("DELETE FROM vampire_data WHERE steamID = %s", steamIDEscaped))
-    sql.Query(string.format("DELETE FROM purchased_abilities WHERE steamID = %s", steamIDEscaped)) -- Remove purchased abilities
+    sql.Query(string.format("DELETE FROM purchased_abilities WHERE steamID = %s", steamIDEscaped)) 
 end
 
 local function LoadVampireData()
@@ -49,7 +49,7 @@ local function LoadVampireData()
     end
 end
 
-local function SyncVampireData()
+function SyncVampireData()
     if SERVER then
         if timer.Exists("SyncVampireDataTimer") then return end
         timer.Create("SyncVampireDataTimer", 1, 1, function()
@@ -111,10 +111,16 @@ function UpdateVampireStats(ply)
     if config.model then
         ply:SetModel(config.model)
     else
-        local jobModel = ply:getJobTable().model
+        local jobModel
+        if isfunction(ply.getJobTable) then
+            local job = ply:getJobTable()
+            if job and job.model then
+                jobModel = job.model
+            end
+        end
         if istable(jobModel) then
             ply:SetModel(jobModel[1])
-        else
+        elseif isstring(jobModel) then
             ply:SetModel(jobModel)
         end
     end
@@ -140,9 +146,11 @@ function AddBlood(ply, amount)
     if newTier ~= vampire.tier then
         vampire.tier = newTier
         UpdateVampireStats(ply)
-        net.Start("NewTierMessage")
-        net.WriteString("You have reached a new tier: " .. vampire.tier)
-        net.Send(ply)
+        if SERVER then
+            net.Start("NewTierMessage")
+            net.WriteString("You have reached a new tier: " .. vampire.tier)
+            net.Send(ply)
+        end
     end
 
     SaveVampireData()
@@ -152,27 +160,17 @@ function AddBlood(ply, amount)
     end
 end
 
-function StartDrainBlood(ply, target)
+
+
+function DrainBlood(ply, target, amount, rate)
     if not IsVampire(ply) then return end
-    if not IsValid(target) or target:Health() <= 0 then return end
-
-    local drainTimer = "DrainBlood_" .. ply:SteamID() .. "_" .. target:EntIndex()
-
-    timer.Create(drainTimer, 1, 0, function()
-        if not IsValid(ply) or not IsValid(target) or target:Health() <= 0 then
-            timer.Remove(drainTimer)
-            return
-        end
-
-        DrainBlood(ply, target)
-    end)
+    local toAdd = tonumber(amount) or 50
+    AddBlood(ply, toAdd)
 end
 
-function DrainBlood(ply, target)
-    if not IsVampire(ply) then return end
-    if not IsValid(target) or target:Health() <= 0 then return end
 
-    AddBlood(ply, 50)
+function StartDrainBlood(ply, target)
+    return DrainBlood(ply, target, 50)
 end
 
 function AddHunterMedallion(ply)

@@ -1,4 +1,4 @@
--- Vampire Covens Menu
+
 
 include("vampire/sh_vampire_covens_config.lua")
 
@@ -14,6 +14,19 @@ net.Receive("OpenVampireCovensMenu", function()
     covenList:SetWidth(200)
     covenList:SetMultiSelect(false)
     covenList:AddColumn("Coven Name")
+    
+    if not covenList.__oldAddLine then
+        covenList.__oldAddLine = covenList.AddLine
+        function covenList:AddLine(...)
+            local line = self:__oldAddLine(...)
+            if line and line.Columns then
+                for _, col in pairs(line.Columns) do
+                    if col.SetTextColor then col:SetTextColor(Color(235,235,235)) end
+                end
+            end
+            return line
+        end
+    end
 
     for covenName, _ in pairs(VampireCovensConfig) do
         covenList:AddLine(covenName)
@@ -24,12 +37,25 @@ net.Receive("OpenVampireCovensMenu", function()
     memberList:SetMultiSelect(false)
     memberList:AddColumn("Player")
     memberList:AddColumn("Rank")
+    
+    if not memberList.__oldAddLine then
+        memberList.__oldAddLine = memberList.AddLine
+        function memberList:AddLine(...)
+            local line = self:__oldAddLine(...)
+            if line and line.Columns then
+                for _, col in pairs(line.Columns) do
+                    if col.SetTextColor then col:SetTextColor(Color(235,235,235)) end
+                end
+            end
+            return line
+        end
+    end
 
     local function updateMemberList(covenName)
         memberList:Clear()
         local members = {}
 
-        -- The preset Lords of the Covens are addded here, they can be removed and changed if needed
+        
         if covenName == "Coven of Blood" then
             table.insert(members, {name = "Lord of Blood", rank = "Lord of Blood"})
         elseif covenName == "Coven of Shadows" then
@@ -119,7 +145,7 @@ net.Receive("OpenVampireCovensMenu", function()
         end)
     end
 
-    -- Add promote and demote buttons
+    
     local promoteRankButton = vgui.Create("DButton", frame)
     promoteRankButton:SetText("Promote Rank")
     promoteRankButton:Dock(BOTTOM)

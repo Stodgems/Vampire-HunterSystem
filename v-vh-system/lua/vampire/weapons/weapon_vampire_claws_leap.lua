@@ -1,4 +1,4 @@
--- Vampire Claws and Leap SWEP
+
 
 SWEP = {}
 SWEP.Base = "weapon_base"
@@ -84,7 +84,7 @@ end
 hook.Add("OnPlayerHitGround", "NoFallDamageForVampireLeap", function(ply, inWater, onFloater, speed)
     if IsValid(ply) and ply:Alive() and ply:GetActiveWeapon():GetClass() == "weapon_vampire_claws_leap" and ply:GetActiveWeapon().LeapInProgress then
         ply:GetActiveWeapon().LeapInProgress = false
-        return true -- Prevent fall damage when in the air after leaping
+        return true 
     end
 end)
 

@@ -1,5 +1,5 @@
--- Admin Declasser Entity
--- This is slightly redudant as you can remove people from vampire or hunter from the admin menu but I will let it remain for now
+
+
 
 AddCSLuaFile()
 

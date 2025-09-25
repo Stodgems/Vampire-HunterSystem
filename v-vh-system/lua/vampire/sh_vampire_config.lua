@@ -1,4 +1,4 @@
--- Vampire Configuration
+
 
 VampireConfig = {
     Tiers = {

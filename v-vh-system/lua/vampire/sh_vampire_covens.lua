@@ -1,4 +1,4 @@
--- Vampire Covens Logic
+
 
 if SERVER and _G.VampireCovensLoaded then return end
 _G.VampireCovensLoaded = true
